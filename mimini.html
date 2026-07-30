@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mimini - Quest Knowledge Assistant</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+    }
+  </script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Application Logic -->
+  <script>
+    document.addEventListener('alpine:init', () => {
+      Alpine.data('miminiApp', () => ({
+        sidebarOpen: true,
+        darkMode: true,
+        showDatasetModal: false,
+        userInput: '',
+        isSearching: false,
+        messages: [],
+
+        quests: [
+          { name: 'CCNA & CCNP Networking', icon: 'network' },
+          { name: 'Cybersecurity Recon Quest', icon: 'shield-alert' },
+          { name: 'Data Analytics Mobile Quest', icon: 'bar-chart-3' },
+          { name: 'Data Science, ML & AI Quest', icon: 'brain' },
+          { name: 'Full-Stack Web Dev Quest', icon: 'code-2' }
+        ],
+
+        starterPrompts: [
+          { quest: "CCNA & CCNP", title: "OSPF SPF Algorithm", query: "Which dynamic routing protocol uses the Dijkstra Shortest Path First algorithm?" },
+          { quest: "DS & ML & AI", title: "Overfitting Regularization", query: "What technique prevents overfitting by penalizing high model weights?" },
+          { quest: "Full-Stack Dev", title: "JSON Formatting", query: "Write Python code using json.dumps to format a dictionary into a JSON string." }
+        ],
+
+        questDataset: [
+          /* ================= CCNA & CCNP NETWORKING QUEST (30 Questions) ================= */
+          { quest_id: "ccna_1", quest: "CCNA & CCNP Networking Quest", level: 1, type: "text", q: "Which OSI layer is responsible for logical IP addressing and routing?", ans: "network", hint: "Layer 3 of the OSI model." },
+          { quest_id: "ccna_2", quest: "CCNA & CCNP Networking Quest", level: 1, type: "text", q: "What protocol resolves an IP address to a physical MAC address?", ans: "arp", hint: "Address Resolution Protocol." },
+          { quest_id: "ccna_3", quest: "CCNA & CCNP Networking Quest", level: 1, type: "text", q: "What is the default Administrative Distance (AD) of a statically configured route in Cisco IOS?", ans: "1", hint: "It is the most trusted route after directly connected (0)." },
+          { quest_id: "ccna_4", quest: "CCNA & CCNP Networking Quest", level: 1, type: "text", q: "What subnet mask corresponds to CIDR prefix /24 in dotted decimal?", ans: "255.255.255.0", hint: "First three octets fully set to 255." },
+          { quest_id: "ccna_5", quest: "CCNA & CCNP Networking Quest", level: 1, type: "text", q: "Which layer 2 protocol prevents switching loops in Ethernet topologies?", ans: "stp", hint: "Spanning Tree Protocol." },
+          { quest_id: "ccna_6", quest: "CCNA & CCNP Networking Quest", level: 1, type: "text", q: "What port does SSH use by default?", ans: "22", hint: "Secure replacement for Telnet (23)." },
+          { quest_id: "ccna_7", quest: "CCNA & CCNP Networking Quest", level: 1, type: "text", q: "How many usable host IP addresses are in a /28 subnet?", ans: "14", hint: "Formula: (2^4) - 2." },
+          { quest_id: "ccna_8", quest: "CCNA & CCNP Networking Quest", level: 1, type: "text", q: "What command enters Global Configuration mode in Cisco IOS?", ans: "configure terminal", hint: "Or 'conf t' for short." },
+          { quest_id: "ccna_9", quest: "CCNA & CCNP Networking Quest", level: 1, type: "text", q: "Which dynamic routing protocol uses the Dijkstra Shortest Path First (SPF) algorithm?", ans: "ospf", hint: "Open Shortest Path First." },
+          { quest_id: "ccna_10", quest: "CCNA & CCNP Networking Quest", level: 1, type: "text", q: "What type of IPv6 address is equivalent to IPv4 private addresses (FC00::/7)?", ans: "unique local", hint: "Unique Local Address (ULA)." },
+          { quest_id: "ccna_11", quest: "CCNA & CCNP Networking Quest", level: 2, type: "text", q: "What Cisco command displays the IP routing table status on a router?", ans: "show ip route", hint: "'show ip _____'." },
+          { quest_id: "ccna_12", quest: "CCNA & CCNP Networking Quest", level: 2, type: "text", q: "In Cisco switches, which trunking encapsulation standard uses 802.1Q tagging?", ans: "dot1q", hint: "IEEE 802.1Q standard encapsulation name." },
+          { quest_id: "ccna_13", quest: "CCNA & CCNP Networking Quest", level: 2, type: "text", q: "What Administrative Distance (AD) is assigned to OSPF routes by default?", ans: "110", hint: "Between EIGRP (90) and RIP (120)." },
+          { quest_id: "ccna_14", quest: "CCNA & CCNP Networking Quest", level: 2, type: "text", q: "What is the broadcast address for the network 192.168.1.0/26?", ans: "192.168.1.63", hint: "Block size is 64. Next block starts at .64." },
+          { quest_id: "ccna_15", quest: "CCNA & CCNP Networking Quest", level: 2, type: "text", q: "What Cisco IOS command configures an interface as an 802.1Q trunk port?", ans: "switchport mode trunk", hint: "'switchport mode _____'" },
+          { quest_id: "ccna_16", quest: "CCNA & CCNP Networking Quest", level: 2, type: "text", q: "In OSPF, what is the default Hello timer interval on broadcast multiaccess networks (in seconds)?", ans: "10", hint: "10 seconds Hello, 40 seconds Dead." },
+          { quest_id: "ccna_17", quest: "CCNA & CCNP Networking Quest", level: 2, type: "text", q: "Which protocol provides gateway redundancy by allowing multiple routers to share a virtual IP (HSRP/VRRP/GLBP)?", ans: "hsrp", hint: "Cisco proprietary Hot Standby Router Protocol." },
+          { quest_id: "ccna_18", quest: "CCNA & CCNP Networking Quest", level: 2, type: "text", q: "What wildcard mask is used in OSPF network commands for a /24 network?", ans: "0.0.0.255", hint: "Inverse of 255.255.255.0." },
+          { quest_id: "ccna_19", quest: "CCNA & CCNP Networking Quest", level: 2, type: "text", q: "Which BGP attribute is Cisco-proprietary and evaluated first in path selection?", ans: "weight", hint: "Local to the router, higher is preferred (0-65535)." },
+          { quest_id: "ccna_20", quest: "CCNA & CCNP Networking Quest", level: 2, type: "text", q: "What Cisco command saves the running configuration to NVRAM?", ans: "copy running-config startup-config", hint: "Or 'write memory' / 'wr'." },
+          { quest_id: "ccna_21", quest: "CCNA & CCNP Networking Quest", level: 3, type: "code", q: "Write Python code to construct a Cisco IOS interface config block for GigabitEthernet0/1 with IP 10.0.0.1/24.", ans: "ip address 10.0.0.1 255.255.255.0", fullSolution: "ip = '10.0.0.1'\nmask = '255.255.255.0'\ncfg = f'interface GigabitEthernet0/1\\n ip address {ip} {mask}\\n no shutdown'\nprint(cfg)", hint: "f'interface GigabitEthernet0/1\\n ip address {ip} {mask}\\n no shutdown'" },
+          { quest_id: "ccna_22", quest: "CCNA & CCNP Networking Quest", level: 3, type: "code", q: "Write Python code to calculate total host bits and number of usable host IPs for a /26 prefix.", ans: "usable", fullSolution: "prefix = 26\nhost_bits = 32 - prefix\nusable = (2 ** host_bits) - 2\nprint(f'Host bits: {host_bits}, Usable IPs: {usable}')", hint: "host_bits = 32 - 26; usable = (2**host_bits) - 2" },
+          { quest_id: "ccna_23", quest: "CCNA & CCNP Networking Quest", level: 3, type: "code", q: "Write Python code to format an OSPF network statement command for 172.16.1.0/24 in Area 0.", ans: "router ospf", fullSolution: "net = '172.16.1.0'\nwildcard = '0.0.0.255'\narea = 0\ncmd = f'router ospf 1\\n network {net} {wildcard} area {area}'\nprint(cmd)", hint: "f'router ospf 1\\n network {net} {wildcard} area {area}'" },
+          { quest_id: "ccna_24", quest: "CCNA & CCNP Networking Quest", level: 3, type: "code", q: "Write Python code to convert CIDR integer prefix (e.g., 24) to host count.", ans: "2**", fullSolution: "cidr = 24\ntotal_ips = 2 ** (32 - cidr)\nprint(f'Total IPs: {total_ips}')", hint: "2 ** (32 - cidr)" },
+          { quest_id: "ccna_25", quest: "CCNA & CCNP Networking Quest", level: 3, type: "code", q: "Write Python code that loops through VLAN IDs [10, 20, 30] and prints 'vlan <id>' commands.", ans: "vlan", fullSolution: "vlans = [10, 20, 30]\nfor v in vlans:\n    print(f'vlan {v}\\n name DATA_{v}')", hint: "for v in vlans: print(f'vlan {v}')" },
+          { quest_id: "ccna_26", quest: "CCNA & CCNP Networking Quest", level: 3, type: "code", q: "Write Python code to parse a Cisco CLI ARP table string and extract IP addresses.", ans: "split", fullSolution: "arp = 'Internet 192.168.1.1 10 c025.a12b.44cd ARPA GigabitEthernet0/0'\nparts = arp.split()\nip = parts[1]\nprint(f'Extracted IP: {ip}')", hint: "arp.split()[1]" },
+          { quest_id: "ccna_27", quest: "CCNA & CCNP Networking Quest", level: 3, type: "code", q: "Write Python code to build a static route command for 192.168.2.0/24 via next-hop 10.0.0.2.", ans: "ip route", fullSolution: "net = '192.168.2.0'\nmask = '255.255.255.0'\nnexthop = '10.0.0.2'\nprint(f'ip route {net} {mask} {nexthop}')", hint: "f'ip route {net} {mask} {nexthop}'" },
+          { quest_id: "ccna_28", quest: "CCNA & CCNP Networking Quest", level: 3, type: "code", q: "Write Python code to parse a list of routing entries and filter only OSPF routes (prefixed with 'O').", ans: "startswith('O')", fullSolution: "routes = ['C 10.0.0.0/24', 'O 172.16.0.0/16', 'S 0.0.0.0/0', 'O 192.168.5.0/24']\nospf_routes = [r for r in routes if r.startswith('O')]\nprint(ospf_routes)", hint: "[r for r in routes if r.startswith('O')]" },
+          { quest_id: "ccna_29", quest: "CCNA & CCNP Networking Quest", level: 3, type: "code", q: "Write Python code to format standard ACL entry 10 permitting host 192.168.1.50.", ans: "access-list", fullSolution: "acl_num = 10\nip = '192.168.1.50'\nprint(f'access-list {acl_num} permit host {ip}')", hint: "f'access-list {acl_num} permit host {ip}'" },
+          { quest_id: "ccna_30", quest: "CCNA & CCNP Networking Quest", level: 3, type: "code", q: "Write a Python function generate_bgp_neighbor(asn, neighbor_ip) returning Cisco BGP CLI configuration.", ans: "def generate_bgp_neighbor", fullSolution: "def generate_bgp_neighbor(asn, neighbor_ip):\n    return f'router bgp {asn}\\n neighbor {neighbor_ip} remote-as {asn}'\n\nprint(generate_bgp_neighbor(65000, '192.168.1.2'))", hint: "def generate_bgp_neighbor(asn, neighbor_ip): return ..." },
+
+          /* ================= CYBERSECURITY RECON QUEST (30 Questions) ================= */
+          { quest_id: "cyber_1", quest: "Cybersecurity Recon Quest", level: 1, type: "text", q: "What command line protocol/tool is used to query domain registration records?", ans: "whois", hint: "It literally asks 'Who is' this domain registered to." },
+          { quest_id: "cyber_2", quest: "Cybersecurity Recon Quest", level: 1, type: "text", q: "Which Python tool uses search engines (Google, Bing, Yahoo) to enumerate subdomains?", ans: "sublist3r", hint: "Subdomain listing tool written in Python." },
+          { quest_id: "cyber_3", quest: "Cybersecurity Recon Quest", level: 1, type: "text", q: "What is the Nmap flag for performing a default TCP SYN stealth scan?", ans: "-sS", hint: "s for scan, S for SYN." },
+          { quest_id: "cyber_4", quest: "Cybersecurity Recon Quest", level: 1, type: "text", q: "What Nmap flag enables service and version detection on open ports?", ans: "-sV", hint: "s for scan, V for Version." },
+          { quest_id: "cyber_5", quest: "Cybersecurity Recon Quest", level: 1, type: "text", q: "In Sublist3r, which flag specifies the target domain name to enumerate?", ans: "-d", hint: "d stands for domain." },
+          { quest_id: "cyber_6", quest: "Cybersecurity Recon Quest", level: 1, type: "text", q: "What Nmap flag enables OS detection on the target host?", ans: "-O", hint: "Capital O stands for Operating System." },
+          { quest_id: "cyber_7", quest: "Cybersecurity Recon Quest", level: 1, type: "text", q: "Which Sublist3r flag enables brute-forcing subdomains with subbrute?", ans: "-b", hint: "b stands for brute-force." },
+          { quest_id: "cyber_8", quest: "Cybersecurity Recon Quest", level: 1, type: "text", q: "What Nmap flag skips host discovery and assumes the host is online (no ICMP ping)?", ans: "-Pn", hint: "P for Ping, n for No." },
+          { quest_id: "cyber_9", quest: "Cybersecurity Recon Quest", level: 1, type: "text", q: "What WHOIS record parameter shows the date when a domain registration expires?", ans: "expiry date", hint: "Contains the word 'expiry' or 'expiration'." },
+          { quest_id: "cyber_10", quest: "Cybersecurity Recon Quest", level: 1, type: "text", q: "What Nmap flag scans all 65,535 TCP ports?", ans: "-p-", hint: "Dash after the port flag." },
+          { quest_id: "cyber_11", quest: "Cybersecurity Recon Quest", level: 2, type: "text", q: "What scan mode is executed when running 'nmap -sU target'?", ans: "udp scan", hint: "-sU scans UDP ports." },
+          { quest_id: "cyber_12", quest: "Cybersecurity Recon Quest", level: 2, type: "text", q: "What does 'sublist3r -d example.com -o results.txt' do with -o?", ans: "save output to file", hint: "Saves findings to a specified output file." },
+          { quest_id: "cyber_13", quest: "Cybersecurity Recon Quest", level: 2, type: "text", q: "In WHOIS, what record shows the DNS servers authoritative for the domain?", ans: "nameservers", hint: "Contains 'name' and 'servers' (or NS records)." },
+          { quest_id: "cyber_14", quest: "Cybersecurity Recon Quest", level: 2, type: "text", q: "What Nmap timing template (-T0 to -T5) represents the fastest scan speed?", ans: "-T5", hint: "-T5 is Insane speed mode." },
+          { quest_id: "cyber_15", quest: "Cybersecurity Recon Quest", level: 2, type: "text", q: "What Nmap flag combines OS detection, version scanning, script scanning, and traceroute?", ans: "-A", hint: "Aggressive scan flag (capital letter)." },
+          { quest_id: "cyber_16", quest: "Cybersecurity Recon Quest", level: 2, type: "text", q: "In Nmap, what port state indicates a firewall or packet filter is blocking probes?", ans: "filtered", hint: "The status returned when packets are dropped silently." },
+          { quest_id: "cyber_17", quest: "Cybersecurity Recon Quest", level: 2, type: "text", q: "Which Nmap switch executes standard NSE (Nmap Scripting Engine) vulnerability scripts?", ans: "-sC", hint: "-sC or --script=default." },
+          { quest_id: "cyber_18", quest: "Cybersecurity Recon Quest", level: 2, type: "text", q: "Which Sublist3r flag lets you specify specific search engines (e.g., google,bing)?", ans: "-e", hint: "e stands for engines." },
+          { quest_id: "cyber_19", quest: "Cybersecurity Recon Quest", level: 2, type: "text", q: "What type of DNS record maps host/subdomain names to IPv4 addresses?", ans: "A record", hint: "Single letter A record." },
+          { quest_id: "cyber_20", quest: "Cybersecurity Recon Quest", level: 2, type: "text", q: "What Nmap flag saves scan results in Grepable output format?", ans: "-oG", hint: "o for output, G for grepable." },
+          { quest_id: "cyber_21", quest: "Cybersecurity Recon Quest", level: 3, type: "code", q: "Write Python code to build a sublist3r execution command for domain 'target.com' and print it.", ans: "sublist3r", fullSolution: "domain = 'target.com'\ncmd = f'sublist3r -d {domain} -o output.txt'\nprint(cmd)", hint: "print(f'sublist3r -d {domain}')" },
+          { quest_id: "cyber_22", quest: "Cybersecurity Recon Quest", level: 3, type: "code", q: "Write Python code to construct an Nmap SYN scan command targeting '192.168.1.1' for ports 80 and 443.", ans: "-sS", fullSolution: "ip = '192.168.1.1'\ncmd = f'nmap -sS -p 80,443 {ip}'\nprint(cmd)", hint: "cmd = f'nmap -sS -p 80,443 {ip}'" },
+          { quest_id: "cyber_23", quest: "Cybersecurity Recon Quest", level: 3, type: "code", q: "Write Python code to extract and print domain nameservers from a list of WHOIS lines.", ans: "nameserver", fullSolution: "whois_data = ['Domain: test.com', 'Name Server: NS1.EXAMPLE.COM', 'Name Server: NS2.EXAMPLE.COM']\nfor line in whois_data:\n    if 'Name Server' in line:\n        print(line)", hint: "Filter lines containing 'Name Server'" },
+          { quest_id: "cyber_24", quest: "Cybersecurity Recon Quest", level: 3, type: "code", q: "Write Python code to filter subdomains list for those containing the word 'admin'.", ans: "admin", fullSolution: "subdomains = ['admin.test.com', 'mail.test.com', 'dev-admin.test.com']\nadmin_subs = [s for s in subdomains if 'admin' in s]\nprint(admin_subs)", hint: "[s for s in subdomains if 'admin' in s]" },
+          { quest_id: "cyber_25", quest: "Cybersecurity Recon Quest", level: 3, type: "code", q: "Write Python code that builds an Nmap aggressive scan command with fast timing (-T4).", ans: "-A", fullSolution: "target = '10.0.0.1'\ncmd = f'nmap -A -T4 {target}'\nprint(cmd)", hint: "f'nmap -A -T4 {target}'" },
+          { quest_id: "cyber_26", quest: "Cybersecurity Recon Quest", level: 3, type: "code", q: "Write Python code to format a list of discovered open ports into a comma-separated string for Nmap -p.", ans: "join", fullSolution: "ports = [21, 22, 80, 443]\nport_str = ','.join(map(str, ports))\nprint(f'nmap -p {port_str} target.com')", hint: "','.join(map(str, ports))" },
+          { quest_id: "cyber_27", quest: "Cybersecurity Recon Quest", level: 3, type: "code", q: "Write Python code that parses an Nmap output list and prints only ports marked 'open'.", ans: "open", fullSolution: "nmap_out = ['22/tcp open ssh', '80/tcp closed http', '443/tcp open https']\nopen_ports = [line for line in nmap_out if 'open' in line]\nprint(open_ports)", hint: "Filter list with 'open' in line" },
+          { quest_id: "cyber_28", quest: "Cybersecurity Recon Quest", level: 3, type: "code", q: "Write Python code to simulate checking WHOIS expiry status (Print 'Expired' if year < 2026).", ans: "2026", fullSolution: "exp_year = 2024\nif exp_year < 2026:\n    print('Expired')\nelse:\n    print('Active')", hint: "if exp_year < 2026: print('Expired')" },
+          { quest_id: "cyber_29", quest: "Cybersecurity Recon Quest", level: 3, type: "code", q: "Write Python code to format a Sublist3r multi-engine search command (-e google,bing,yahoo).", ans: "-e", fullSolution: "engines = ['google', 'bing', 'yahoo']\ncmd = f\"sublist3r -d target.com -e {','.join(engines)}\"\nprint(cmd)", hint: "f\"sublist3r -d target.com -e {','.join(engines)}\"" },
+          { quest_id: "cyber_30", quest: "Cybersecurity Recon Quest", level: 3, type: "code", q: "Write a Python function run_recon(domain) that returns a full recon pipeline command string.", ans: "def run_recon", fullSolution: "def run_recon(domain):\n    return f'sublist3r -d {domain} && nmap -sV -iL subdomains.txt'\n\nprint(run_recon('example.com'))", hint: "def run_recon(domain): return f'sublist3r -d {domain} ...'" },
+
+          /* ================= DATA ANALYTICS MOBILE QUEST (30 Questions) ================= */
+          { quest_id: "data_1", quest: "Data Analytics Mobile Quest", level: 1, type: "text", q: "What keyword is used to define a function in Python?", ans: "def", hint: "Starts with 'd'." },
+          { quest_id: "data_2", quest: "Data Analytics Mobile Quest", level: 1, type: "text", q: "Which Pandas object represents a 2D tabular data structure?", ans: "dataframe", hint: "DF for short." },
+          { quest_id: "data_3", quest: "Data Analytics Mobile Quest", level: 1, type: "text", q: "What NumPy attribute returns the dimensions of an array?", ans: "shape", hint: "e.g., arr._____." },
+          { quest_id: "data_4", quest: "Data Analytics Mobile Quest", level: 1, type: "text", q: "Which method removes leading/trailing spaces in string series?", ans: "strip", hint: "str._____()" },
+          { quest_id: "data_5", quest: "Data Analytics Mobile Quest", level: 1, type: "text", q: "What symbol is used for exponentiation (power) in Python?", ans: "**", hint: "Two asterisks." },
+          { quest_id: "data_6", quest: "Data Analytics Mobile Quest", level: 1, type: "text", q: "Which function is used to create a range of numbers array in NumPy?", ans: "arange", hint: "Similar to Python range." },
+          { quest_id: "data_7", quest: "Data Analytics Mobile Quest", level: 1, type: "text", q: "What Pandas function reads a CSV file?", ans: "read_csv", hint: "pd._____" },
+          { quest_id: "data_8", quest: "Data Analytics Mobile Quest", level: 1, type: "text", q: "What value represents missing data in Pandas?", ans: "nan", hint: "Not a Number." },
+          { quest_id: "data_9", quest: "Data Analytics Mobile Quest", level: 1, type: "text", q: "Which Pandas method is used to aggregate data by categories?", ans: "groupby", hint: "Group ____" },
+          { quest_id: "data_10", quest: "Data Analytics Mobile Quest", level: 1, type: "text", q: "What python data structure is ordered and immutable?", ans: "tuple", hint: "Uses parentheses ()." },
+          { quest_id: "data_11", quest: "Data Analytics Mobile Quest", level: 2, type: "text", q: "Output of: len(np.array([10, 20, 30]))?", ans: "3", hint: "Count the elements." },
+          { quest_id: "data_12", quest: "Data Analytics Mobile Quest", level: 2, type: "text", q: "Output of: np.array([1, 2]) + np.array([3, 4])?", ans: "[4 6]", hint: "Element-wise addition (or write 4, 6)." },
+          { quest_id: "data_13", quest: "Data Analytics Mobile Quest", level: 2, type: "text", q: "Output of: type([1, 2, 3])? (Write 'list' or 'array')", ans: "list", hint: "Standard Python sequence." },
+          { quest_id: "data_14", quest: "Data Analytics Mobile Quest", level: 2, type: "text", q: "If df has 5 rows and 3 cols, what is df.shape[0]?", ans: "5", hint: "0-index is row count." },
+          { quest_id: "data_15", quest: "Data Analytics Mobile Quest", level: 2, type: "text", q: "Output of: 7 // 2 in Python?", ans: "3", hint: "Integer floor division." },
+          { quest_id: "data_16", quest: "Data Analytics Mobile Quest", level: 2, type: "text", q: "Output of bool(0) in Python?", ans: "false", hint: "Zero represents false." },
+          { quest_id: "data_17", quest: "Data Analytics Mobile Quest", level: 2, type: "text", q: "Output of: 'py' + 'thon'?", ans: "python", hint: "String concatenation." },
+          { quest_id: "data_18", quest: "Data Analytics Mobile Quest", level: 2, type: "text", q: "Index of the first item in Python sequence?", ans: "0", hint: "Zero-based indexing." },
+          { quest_id: "data_19", quest: "Data Analytics Mobile Quest", level: 2, type: "text", q: "Output of: np.zeros(4).ndim?", ans: "1", hint: "1D array." },
+          { quest_id: "data_20", quest: "Data Analytics Mobile Quest", level: 2, type: "text", q: "Output of: 'HELLO'.lower()?", ans: "hello", hint: "Converts to lowercase." },
+          { quest_id: "data_21", quest: "Data Analytics Mobile Quest", level: 3, type: "code", q: "Write code to filter df where age > 20. (Use df = pd.DataFrame({'age': [18, 25, 30]}))", ans: "df[df['age'] > 20]", fullSolution: "import pandas as pd\ndf = pd.DataFrame({'age': [18, 25, 30]})\nfiltered_df = df[df['age'] > 20]\nprint(filtered_df)", hint: "df[df['age'] > 20]" },
+          { quest_id: "data_22", quest: "Data Analytics Mobile Quest", level: 3, type: "code", q: "Write code to fill NaN values with 0 in df. (Use df = pd.DataFrame({'salary': [100, None]}))", ans: "fillna(0)", fullSolution: "import pandas as pd\ndf = pd.DataFrame({'salary': [100, None]})\nclean_df = df.fillna(0)\nprint(clean_df)", hint: "df.fillna(0)" },
+          { quest_id: "data_23", quest: "Data Analytics Mobile Quest", level: 3, type: "code", q: "Write code to create a 3x3 NumPy array of ones.", ans: "ones", fullSolution: "import numpy as np\narr = np.ones((3, 3))\nprint(arr)", hint: "np.ones((3,3))" },
+          { quest_id: "data_24", quest: "Data Analytics Mobile Quest", level: 3, type: "code", q: "Write code to calculate mean salary grouped by 'city'.", ans: "groupby", fullSolution: "import pandas as pd\ndf = pd.DataFrame({'city': ['A', 'A', 'B'], 'salary': [100, 200, 300]})\nres = df.groupby('city')['salary'].mean()\nprint(res)", hint: "df.groupby('city')['salary'].mean()" },
+          { quest_id: "data_25", quest: "Data Analytics Mobile Quest", level: 3, type: "code", q: "Write code to drop duplicate rows from a DataFrame df.", ans: "drop_duplicates", fullSolution: "import pandas as pd\ndf = pd.DataFrame({'a': [1, 1, 2]})\nclean_df = df.drop_duplicates()\nprint(clean_df)", hint: "df.drop_duplicates()" },
+          { quest_id: "data_26", quest: "Data Analytics Mobile Quest", level: 3, type: "code", q: "Import pandas as pd and numpy as np.", ans: "import pandas as pd", fullSolution: "import pandas as pd\nimport numpy as np", hint: "import pandas as pd\nimport numpy as np" },
+          { quest_id: "data_27", quest: "Data Analytics Mobile Quest", level: 3, type: "code", q: "Sort DataFrame df by column 'age' in descending order.", ans: "ascending=False", fullSolution: "import pandas as pd\ndf = pd.DataFrame({'age': [10, 30, 20]})\nsorted_df = df.sort_values('age', ascending=False)\nprint(sorted_df)", hint: "df.sort_values('age', ascending=False)" },
+          { quest_id: "data_28", quest: "Data Analytics Mobile Quest", level: 3, type: "code", q: "Create array A = np.array([[1,2],[3,4]]) and print its transpose.", ans: ".T", fullSolution: "import numpy as np\nA = np.array([[1,2],[3,4]])\nprint(A.T)", hint: "print(A.T)" },
+          { quest_id: "data_29", quest: "Data Analytics Mobile Quest", level: 3, type: "code", q: "Rename column 'old_name' to 'new_name' in df.", ans: "rename", fullSolution: "import pandas as pd\ndf = pd.DataFrame({'old_name': [1, 2]})\nnew_df = df.rename(columns={'old_name': 'new_name'})\nprint(new_df)", hint: "df.rename(columns={'old_name': 'new_name'})" },
+          { quest_id: "data_30", quest: "Data Analytics Mobile Quest", level: 3, type: "code", q: "Define a function calculate_avg(lst) that returns the mean of a list.", ans: "def calculate_avg", fullSolution: "def calculate_avg(lst):\n    return sum(lst) / len(lst)\n\nprint(calculate_avg([10, 20, 30]))", hint: "def calculate_avg(lst):\n    return sum(lst)/len(lst)" },
+
+          /* ================= DATA SCIENCE, ML & AI QUEST (30 Questions) ================= */
+          { quest_id: "ds_1", quest: "Data Science, ML & AI Quest", level: 1, type: "text", q: "What machine learning algorithm creates a tree-like structure of decisions?", ans: "decision tree", hint: "Tree-structured classification algorithm." },
+          { quest_id: "ds_2", quest: "Data Science, ML & AI Quest", level: 1, type: "text", q: "Which metric measures the percentage of correct predictions out of all predictions?", ans: "accuracy", hint: "Total Correct / Total Predictions." },
+          { quest_id: "ds_3", quest: "Data Science, ML & AI Quest", level: 1, type: "text", q: "What technique prevents overfitting by penalizing high model weights in Linear Regression?", ans: "regularization", hint: "Includes L1 (Lasso) and L2 (Ridge)." },
+          { quest_id: "ds_4", quest: "Data Science, ML & AI Quest", level: 1, type: "text", q: "Which activation function outputs values constrained between 0 and 1?", ans: "sigmoid", hint: "S-shaped probability function." },
+          { quest_id: "ds_5", quest: "Data Science, ML & AI Quest", level: 1, type: "text", q: "What unsupervised algorithm clusters data points around k centroids?", ans: "k-means", hint: "Centroid-based clustering method." },
+          { quest_id: "ds_6", quest: "Data Science, ML & AI Quest", level: 1, type: "text", q: "Which activation function returns max(0, x)?", ans: "relu", hint: "Rectified Linear Unit." },
+          { quest_id: "ds_7", quest: "Data Science, ML & AI Quest", level: 1, type: "text", q: "What term describes a neural network model with multiple hidden layers?", ans: "deep learning", hint: "Deep Artificial Neural Networks." },
+          { quest_id: "ds_8", quest: "Data Science, ML & AI Quest", level: 1, type: "text", q: "Which matrix compares actual vs predicted labels in classification?", ans: "confusion matrix", hint: "Shows TP, FP, TN, FN." },
+          { quest_id: "ds_9", quest: "Data Science, ML & AI Quest", level: 1, type: "text", q: "What optimization technique updates weights in the direction opposite to gradients?", ans: "gradient descent", hint: "Iterative optimization for minimization." },
+          { quest_id: "ds_10", quest: "Data Science, ML & AI Quest", level: 1, type: "text", q: "Which Scikit-Learn class scales features to mean 0 and variance 1?", ans: "standardscaler", hint: "Standardization scaler." },
+          { quest_id: "ds_11", quest: "Data Science, ML & AI Quest", level: 2, type: "text", q: "What ensemble algorithm combines multiple decision trees using bagging?", ans: "random forest", hint: "Forest of randomized trees." },
+          { quest_id: "ds_12", quest: "Data Science, ML & AI Quest", level: 2, type: "text", q: "In binary classification, what is True Positives / (True Positives + False Negatives)?", ans: "recall", hint: "Also known as sensitivity." },
+          { quest_id: "ds_13", quest: "Data Science, ML & AI Quest", level: 2, type: "text", q: "What problem occurs when a model learns noise in training data and performs poorly on test data?", ans: "overfitting", hint: "High variance model condition." },
+          { quest_id: "ds_14", quest: "Data Science, ML & AI Quest", level: 2, type: "text", q: "Which dimensionality reduction method finds orthogonal axes of maximum variance?", ans: "pca", hint: "Principal Component Analysis." },
+          { quest_id: "ds_15", quest: "Data Science, ML & AI Quest", level: 2, type: "text", q: "What loss function is standard for multi-class classification in neural networks?", ans: "categorical cross-entropy", hint: "Cross-entropy loss function." },
+          { quest_id: "ds_16", quest: "Data Science, ML & AI Quest", level: 2, type: "text", q: "Which Scikit-Learn function splits datasets into training and testing sets?", ans: "train_test_split", hint: "model_selection module function." },
+          { quest_id: "ds_17", quest: "Data Science, ML & AI Quest", level: 2, type: "text", q: "What learning rate parameter controls step size in gradient descent updates?", ans: "alpha", hint: "Represented by alpha or eta." },
+          { quest_id: "ds_18", quest: "Data Science, ML & AI Quest", level: 2, type: "text", q: "What distance metric is most commonly used in k-NN classification?", ans: "euclidean distance", hint: "Straight line distance formula." },
+          { quest_id: "ds_19", quest: "Data Science, ML & AI Quest", level: 2, type: "text", q: "Which architecture uses self-attention mechanisms for modern LLMs?", ans: "transformer", hint: "Introduced in 'Attention Is All You Need'." },
+          { quest_id: "ds_20", quest: "Data Science, ML & AI Quest", level: 2, type: "text", q: "What harmonic mean combines precision and recall into a single score?", ans: "f1 score", hint: "Harmonic mean of precision and recall." },
+          { quest_id: "ds_21", quest: "Data Science, ML & AI Quest", level: 3, type: "code", q: "Write Scikit-Learn code to train a LogisticRegression model on X_train and y_train.", ans: "model.fit(X_train, y_train)", fullSolution: "from sklearn.linear_model import LogisticRegression\nmodel = LogisticRegression()\nmodel.fit(X_train, y_train)\nprint('Model Trained')", hint: "model.fit(X_train, y_train)" },
+          { quest_id: "ds_22", quest: "Data Science, ML & AI Quest", level: 3, type: "code", q: "Write Python code to split X and y using train_test_split with test_size 0.2.", ans: "train_test_split", fullSolution: "from sklearn.model_selection import train_test_split\nX_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.2, random_state=42)\nprint(X_tr.shape)", hint: "train_test_split(X, y, test_size=0.2)" },
+          { quest_id: "ds_23", quest: "Data Science, ML & AI Quest", level: 3, type: "code", q: "Write code to instantiate standard scaler and transform feature matrix X.", ans: "StandardScaler().fit_transform", fullSolution: "from sklearn.preprocessing import StandardScaler\nscaler = StandardScaler()\nX_scaled = scaler.fit_transform(X)\nprint(X_scaled[:2])", hint: "StandardScaler().fit_transform(X)" },
+          { quest_id: "ds_24", quest: "Data Science, ML & AI Quest", level: 3, type: "code", q: "Write Python code to compute confusion matrix using Scikit-Learn.", ans: "confusion_matrix", fullSolution: "from sklearn.metrics import confusion_matrix\ncm = confusion_matrix(y_true, y_pred)\nprint(cm)", hint: "confusion_matrix(y_true, y_pred)" },
+          { quest_id: "ds_25", quest: "Data Science, ML & AI Quest", level: 3, type: "code", q: "Write PyTorch code to define a ReLU activation module in a forward pass.", ans: "torch.relu", fullSolution: "import torch\nx = torch.tensor([-1.0, 2.0, -0.5])\nout = torch.relu(x)\nprint(out)", hint: "torch.relu(x)" },
+          { quest_id: "ds_26", quest: "Data Science, ML & AI Quest", level: 3, type: "code", q: "Write Python code to compute Mean Squared Error (MSE) between y_true and y_pred.", ans: "mean_squared_error", fullSolution: "from sklearn.metrics import mean_squared_error\nmse = mean_squared_error(y_true, y_pred)\nprint(f'MSE: {mse}')", hint: "mean_squared_error(y_true, y_pred)" },
+          { quest_id: "ds_27", quest: "Data Science, ML & AI Quest", level: 3, type: "code", q: "Write code to train a KMeans clusterer with k=3.", ans: "KMeans(n_clusters=3)", fullSolution: "from sklearn.cluster import KMeans\nkmeans = KMeans(n_clusters=3, random_state=42)\nkmeans.fit(X)\nprint(kmeans.labels_)", hint: "KMeans(n_clusters=3).fit(X)" },
+          { quest_id: "ds_28", quest: "Data Science, ML & AI Quest", level: 3, type: "code", q: "Write code to perform 5-fold cross validation on a model in Scikit-Learn.", ans: "cross_val_score", fullSolution: "from sklearn.model_selection import cross_val_score\nscores = cross_val_score(model, X, y, cv=5)\nprint(scores.mean())", hint: "cross_val_score(model, X, y, cv=5)" },
+          { quest_id: "ds_29", quest: "Data Science, ML & AI Quest", level: 3, type: "code", q: "Write Python code to perform One-Hot Encoding on categorical series in Pandas.", ans: "pd.get_dummies", fullSolution: "import pandas as pd\ndf = pd.DataFrame({'color': ['red', 'blue', 'green']})\nencoded = pd.get_dummies(df, columns=['color'])\nprint(encoded)", hint: "pd.get_dummies(df, columns=['color'])" },
+          { quest_id: "ds_30", quest: "Data Science, ML & AI Quest", level: 3, type: "code", q: "Write a PyTorch optimization step sequence (zero grad, backward, step).", ans: "optimizer.zero_grad()", fullSolution: "optimizer.zero_grad()\nloss.backward()\noptimizer.step()\nprint('Optimizer step executed')", hint: "optimizer.zero_grad(); loss.backward(); optimizer.step()" },
+
+          /* ================= FULL-STACK WEB DEV QUEST (30 Questions - UPDATED EXACT ORIGINAL) ================= */
+          { quest_id: "fs_1", quest: "Full-Stack Web Dev Quest", level: 1, type: "text", q: "Which HTML5 element specifies a navigational section of links?", ans: "nav", hint: "<nav> tag." },
+          { quest_id: "fs_2", quest: "Full-Stack Web Dev Quest", level: 1, type: "text", q: "Which CSS property changes the background color of an element?", ans: "background-color", hint: "background-color property." },
+          { quest_id: "fs_3", quest: "Full-Stack Web Dev Quest", level: 1, type: "text", q: "Which JS keyword declares a block-scoped constant that cannot be reassigned?", ans: "const", hint: "Cannot be reassigned." },
+          { quest_id: "fs_4", quest: "Full-Stack Web Dev Quest", level: 1, type: "text", q: "What HTML attribute uniquely identifies a single element in a document?", ans: "id", hint: "id attribute." },
+          { quest_id: "fs_5", quest: "Full-Stack Web Dev Quest", level: 1, type: "text", q: "Which CSS Flexbox property aligns items along the main axis?", ans: "justify-content", hint: "justify-content (flex-start, center, space-between)." },
+          { quest_id: "fs_6", quest: "Full-Stack Web Dev Quest", level: 1, type: "text", q: "What standard HTTP response status code represents successful request execution?", ans: "200", hint: "200 OK." },
+          { quest_id: "fs_7", quest: "Full-Stack Web Dev Quest", level: 1, type: "text", q: "Which JS array method appends elements to the end of an array?", ans: "push", hint: "array.push(item)" },
+          { quest_id: "fs_8", quest: "Full-Stack Web Dev Quest", level: 1, type: "text", q: "Which basic SQL clause is used to retrieve data from a relational table?", ans: "select", hint: "SELECT * FROM table" },
+          { quest_id: "fs_9", quest: "Full-Stack Web Dev Quest", level: 1, type: "text", q: "Which HTML tag connects an external CSS stylesheet to a web page?", ans: "link", hint: "<link rel='stylesheet' href='...'>" },
+          { quest_id: "fs_10", quest: "Full-Stack Web Dev Quest", level: 1, type: "text", q: "In CSS Box Model, what space surrounds the content inside the border?", ans: "padding", hint: "Padding is internal spacing." },
+          { quest_id: "fs_11", quest: "Full-Stack Web Dev Quest", level: 2, type: "text", q: "Which HTTP request method replaces an existing resource completely?", ans: "put", hint: "PUT method." },
+          { quest_id: "fs_12", quest: "Full-Stack Web Dev Quest", level: 2, type: "text", q: "What Node.js core module handles cross-platform file and directory paths?", ans: "path", hint: "require('path')" },
+          { quest_id: "fs_13", quest: "Full-Stack Web Dev Quest", level: 2, type: "text", q: "Which JS DOM event fires when an HTML form is submitted?", ans: "submit", hint: "addEventListener('submit')" },
+          { quest_id: "fs_14", quest: "Full-Stack Web Dev Quest", level: 2, type: "text", q: "In REST API design, which HTTP verb removes a specified resource?", ans: "delete", hint: "DELETE method." },
+          { quest_id: "fs_15", quest: "Full-Stack Web Dev Quest", level: 2, type: "text", q: "Which CSS layout system handles 2D structures with rows and columns?", ans: "grid", hint: "display: grid" },
+          { quest_id: "fs_16", quest: "Full-Stack Web Dev Quest", level: 2, type: "text", q: "Which standard JS method converts a JSON string into a JS object?", ans: "json.parse", hint: "JSON.parse()" },
+          { quest_id: "fs_17", quest: "Full-Stack Web Dev Quest", level: 2, type: "text", q: "In Node.js CommonJS modules, what variable holds the directory path of the current module?", ans: "__dirname", hint: "Double underscore __dirname" },
+          { quest_id: "fs_18", quest: "Full-Stack Web Dev Quest", level: 1, type: "text", q: "What popular NoSQL database uses BSON formatted documents?", ans: "mongodb", hint: "MongoDB." },
+          { quest_id: "fs_19", quest: "Full-Stack Web Dev Quest", level: 2, type: "text", q: "Which Git command creates and switches to a new branch simultaneously?", ans: "git checkout -b", hint: "git checkout -b <branch-name>" },
+          { quest_id: "fs_20", quest: "Full-Stack Web Dev Quest", level: 2, type: "text", q: "Which HTTP header field carries Bearer JWT tokens for client authorization?", ans: "authorization", hint: "Authorization header." },
+          { quest_id: "fs_21", quest: "Full-Stack Web Dev Quest", level: 3, type: "code", q: "Write Python code to format a JSON API endpoint URL string with query parameter 'user_id=42'.", ans: "user_id=42", fullSolution: "base = 'https://api.example.com/data'\nurl = f'{base}?user_id=42'\nprint(url)", hint: "f'{base}?user_id=42'" },
+          { quest_id: "fs_22", quest: "Full-Stack Web Dev Quest", level: 3, type: "code", q: "Write Python code using json.dumps to format a dictionary into a JSON string.", ans: "json.dumps", fullSolution: "import json\ndata = {'status': 'success', 'code': 200}\njson_str = json.dumps(data)\nprint(json_str)", hint: "import json; json.dumps(data)" },
+          { quest_id: "fs_23", quest: "Full-Stack Web Dev Quest", level: 3, type: "code", q: "Write Python code to build an Express-like route mapping string for GET '/api/users'.", ans: "GET", fullSolution: "method = 'GET'\npath = '/api/users'\nprint(f'{method} {path}')", hint: "print(f'{method} {path}')" },
+          { quest_id: "fs_24", quest: "Full-Stack Web Dev Quest", level: 3, type: "code", q: "Write Python code to filter a list of API status codes for only 2xx successful responses.", ans: "200", fullSolution: "codes = [200, 404, 500, 201, 403]\nsuccess = [c for c in codes if 200 <= c < 300]\nprint(success)", hint: "[c for c in codes if 200 <= c < 300]" },
+          { quest_id: "fs_25", quest: "Full-Stack Web Dev Quest", level: 3, type: "code", q: "Write Python code that formats a CORS header authorization dictionary.", ans: "Authorization", fullSolution: "headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer token123'}\nprint(headers)", hint: "{'Authorization': 'Bearer token123'}" },
+          { quest_id: "fs_26", quest: "Full-Stack Web Dev Quest", level: 3, type: "code", q: "Write Python code to convert a list of HTML tag strings into uppercase format.", ans: "upper", fullSolution: "tags = ['div', 'span', 'header']\nupper_tags = [t.upper() for t in tags]\nprint(upper_tags)", hint: "[t.upper() for t in tags]" },
+          { quest_id: "fs_27", quest: "Full-Stack Web Dev Quest", level: 3, type: "code", q: "Write Python code to extract database host and port from a connection string 'mongodb://localhost:27017'.", ans: "27017", fullSolution: "conn = 'mongodb://localhost:27017'\nhost_port = conn.split('://')[1]\nprint(host_port)", hint: "conn.split('://')[1]" },
+          { quest_id: "fs_28", quest: "Full-Stack Web Dev Quest", level: 3, type: "code", q: "Write Python code to check if an API token string starts with 'Bearer '.", ans: "startswith", fullSolution: "token = 'Bearer xyz123'\nif token.startswith('Bearer '):\n    print('Valid Format')", hint: "token.startswith('Bearer ')" },
+          { quest_id: "fs_29", quest: "Full-Stack Web Dev Quest", level: 3, type: "code", q: "Write Python code to construct an SQL query string inserting username and email values.", ans: "INSERT INTO", fullSolution: "user = 'john'\nemail = 'john@test.com'\nsql = f\"INSERT INTO users (name, email) VALUES ('{user}', '{email}')\"\nprint(sql)", hint: "f\"INSERT INTO users ... VALUES ('{user}', '{email}')\"" },
+          { quest_id: "fs_30", quest: "Full-Stack Web Dev Quest", level: 3, type: "code", q: "Write a Python function create_api_response(status, payload) returning a response dictionary.", ans: "def create_api_response", fullSolution: "def create_api_response(status, payload):\n    return {'status': status, 'data': payload}\n\nprint(create_api_response(200, {'id': 1}))", hint: "def create_api_response(status, payload): return {'status': status, 'data': payload}" }
+        ],
+
+        sendPrompt(text) {
+          this.userInput = text;
+          this.handleSubmit();
+        },
+
+        handleSubmit() {
+          const query = this.userInput.trim();
+          if (!query || this.isSearching) return;
+
+          this.messages.push({
+            role: 'user',
+            text: query
+          });
+
+          this.userInput = '';
+          this.isSearching = true;
+
+          setTimeout(() => {
+            const result = this.searchDataset(query);
+
+            this.messages.push({
+              role: 'assistant',
+              questName: result.quest,
+              level: result.level,
+              text: result.text,
+              plainText: result.plainText,
+              code: result.code
+            });
+
+            this.isSearching = false;
+            this.$nextTick(() => {
+              this.scrollToBottom();
+              if (window.lucide) window.lucide.createIcons();
+            });
+          }, 300);
+        },
+
+        searchDataset(query) {
+          const qLower = query.toLowerCase().trim();
+
+          let exactMatch = this.questDataset.find(item => 
+            qLower.includes(item.q.toLowerCase()) || item.q.toLowerCase().includes(qLower)
+          );
+
+          if (exactMatch) {
+            return this.formatResponse(exactMatch);
+          }
+
+          const stopWords = new Set(['what', 'which', 'where', 'when', 'who', 'how', 'does', 'that', 'this', 'from', 'with', 'for', 'the', 'is', 'are', 'was', 'were', 'write', 'code', 'python', 'function']);
+          
+          const userTokens = qLower
+            .replace(/[^\w\s-]/g, '')
+            .split(/\s+/)
+            .filter(word => word.length > 1 && !stopWords.has(word));
+
+          if (userTokens.length === 0) {
+            return this.outOfDomainResponse();
+          }
+
+          let bestMatch = null;
+          let highestScore = 0;
+
+          this.questDataset.forEach(item => {
+            let score = 0;
+            const qText = item.q.toLowerCase();
+            const ansText = item.ans.toLowerCase();
+            const hintText = (item.hint || '').toLowerCase();
+
+            userTokens.forEach(token => {
+              if (qText.includes(token)) score += 3;
+              if (ansText.includes(token)) score += 5;
+              if (hintText.includes(token)) score += 2;
+            });
+
+            if (score > highestScore) {
+              highestScore = score;
+              bestMatch = item;
+            }
+          });
+
+          if (bestMatch && highestScore >= 3) {
+            return this.formatResponse(bestMatch);
+          }
+
+          return this.outOfDomainResponse();
+        },
+
+        formatResponse(matched) {
+          let responseHtml = `<b>Question:</b> ${matched.q}<br><br><b>Answer:</b> <code class="bg-indigo-100 dark:bg-indigo-950 px-1.5 py-0.5 rounded text-indigo-700 dark:text-indigo-300 font-mono font-bold">${matched.ans}</code>`;
+          if (matched.hint) {
+            responseHtml += `<br><b>Hint:</b> ${matched.hint}`;
+          }
+
+          return {
+            quest: matched.quest,
+            level: matched.level,
+            text: responseHtml,
+            plainText: `Question: ${matched.q}\nAnswer: ${matched.ans}\nHint: ${matched.hint || ''}`,
+            code: matched.fullSolution || null
+          };
+        },
+
+        outOfDomainResponse() {
+          return {
+            quest: null,
+            level: null,
+            text: `I couldn't find a confident match for your search in our 150-question database.<br><br>
+                   Please try searching for key terms like:<br>
+                   • <b>CCNA/CCNP:</b> OSPF, BGP, ARP, Subnetting, STP, VLANs<br>
+                   • <b>Cyber Recon:</b> Whois, Nmap flags (-sS, -sV, -Pn), Sublist3r<br>
+                   • <b>Data Analytics:</b> Pandas, DataFrame, NumPy, groupby, fillna<br>
+                   • <b>DS, ML & AI:</b> Decision Tree, Confusion Matrix, PyTorch, Regularization, PCA<br>
+                   • <b>Full-Stack:</b> nav, background-color, json.dumps, __dirname, mongodb, grid`,
+            plainText: "No match found. Please search for CCNA, Cyber Recon, Data Analytics, DS & AI, or Full-Stack terms.",
+            code: null
+          };
+        },
+
+        filterByQuest(questName) {
+          const qName = questName.toLowerCase();
+          
+          let sample = this.questDataset.find(item => {
+            const itemQuest = item.quest.toLowerCase();
+            if (qName.includes('cyber') && itemQuest.includes('cyber')) return true;
+            if (qName.includes('science') && itemQuest.includes('science')) return true;
+            if (qName.includes('analytics') && itemQuest.includes('analytics')) return true;
+            if (qName.includes('ccna') && itemQuest.includes('ccna')) return true;
+            if (qName.includes('full-stack') && itemQuest.includes('full-stack')) return true;
+            return false;
+          });
+
+          if (sample) {
+            this.sendPrompt(sample.q);
+          }
+        },
+
+        startNewChat() {
+          this.messages = [];
+        },
+
+        toggleDarkMode() {
+          this.darkMode = !this.darkMode;
+          if (this.darkMode) {
+            document.documentElement.classList.add('dark');
+          } else {
+            document.documentElement.classList.remove('dark');
+          }
+        },
+
+        copyText(str) {
+          if (str) {
+            navigator.clipboard.writeText(str);
+          }
+        },
+
+        scrollToBottom() {
+          const container = document.getElementById('chat-container');
+          if (container) {
+            container.scrollTop = container.scrollHeight;
+          }
+        }
+      }));
+    });
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) window.lucide.createIcons();
+    });
+  </script>
+
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <style>
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+    .dark ::-webkit-scrollbar-thumb { background: #334155; }
+  </style>
+</head>
+<body class="bg-slate-50 dark:bg-slate-900 text-slate-800 dark:text-slate-100 font-sans h-screen flex overflow-hidden"
+      x-data="miminiApp()" x-init="$watch('messages', () => $nextTick(() => scrollToBottom()))">
+
+  <!-- ================= SIDEBAR ================= -->
+  <aside class="bg-slate-100 dark:bg-slate-950 border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between transition-all duration-300 z-20"
+         :class="sidebarOpen ? 'w-64' : 'w-16'">
+    
+    <!-- Top Bar & New Chat Button -->
+    <div class="p-3">
+      <div class="flex items-center justify-between mb-4">
+        <button @click="sidebarOpen = !sidebarOpen; $nextTick(() => lucide.createIcons())" 
+                class="p-2 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full transition text-slate-600 dark:text-slate-400">
+          <i data-lucide="menu" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- New Chat Button -->
+      <button @click="startNewChat()" 
+              class="w-full flex items-center gap-3 p-3 bg-slate-200/70 dark:bg-slate-800/60 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-full text-xs font-semibold text-slate-700 dark:text-slate-200 transition overflow-hidden">
+        <i data-lucide="plus" class="w-4 h-4 shrink-0 text-indigo-500"></i>
+        <span x-show="sidebarOpen" class="whitespace-nowrap">New chat</span>
+      </button>
+
+      <!-- Active Quests List -->
+      <div x-show="sidebarOpen" class="mt-6">
+        <p class="text-[11px] font-bold text-slate-400 dark:text-slate-500 px-3 mb-2 uppercase tracking-wider">Supported Quests</p>
+        <div class="space-y-1">
+          <template x-for="quest in quests" :key="quest.name">
+            <button @click="filterByQuest(quest.name)" 
+                    class="w-full flex items-center gap-2.5 px-3 py-2 text-xs rounded-lg hover:bg-slate-200/60 dark:hover:bg-slate-800/50 text-slate-600 dark:text-slate-300 transition text-left truncate">
+              <i :data-lucide="quest.icon" class="w-3.5 h-3.5 shrink-0 text-indigo-500"></i>
+              <span x-text="quest.name" class="truncate"></span>
+            </button>
+          </template>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sidebar Bottom Utilities -->
+    <div class="p-3 space-y-1 border-t border-slate-200/50 dark:border-slate-800/50">
+      <button @click="toggleDarkMode()" 
+              class="w-full flex items-center gap-3 p-2.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 transition">
+        <i :data-lucide="darkMode ? 'sun' : 'moon'" class="w-4 h-4 shrink-0"></i>
+        <span x-show="sidebarOpen" x-text="darkMode ? 'Light mode' : 'Dark mode'"></span>
+      </button>
+      <button @click="showDatasetModal = true; $nextTick(() => lucide.createIcons())" 
+              class="w-full flex items-center gap-3 p-2.5 hover:bg-slate-200 dark:hover:bg-slate-800 rounded-lg text-xs font-medium text-slate-600 dark:text-slate-400 transition">
+        <i data-lucide="database" class="w-4 h-4 shrink-0 text-indigo-500"></i>
+        <span x-show="sidebarOpen">Inspect All 150 Questions</span>
+      </button>
+    </div>
+  </aside>
+
+  <!-- ================= MAIN CONTENT ================= -->
+  <main class="flex-1 flex flex-col h-full bg-white dark:bg-slate-900 relative">
+    
+    <!-- Header -->
+    <header class="flex items-center justify-between px-6 py-3 border-b border-slate-100 dark:border-slate-800/60">
+      <div class="flex items-center gap-2">
+        <span class="font-bold text-lg tracking-tight bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+          Mimini
+        </span>
+        <span class="text-[10px] font-semibold bg-indigo-50 dark:bg-indigo-950/50 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 rounded-full px-2 py-0.5">
+          150 Questions Knowledge Base Loaded
+        </span>
+      </div>
+      
+      <div class="flex items-center gap-2">
+        <span class="text-xs text-slate-400 hidden sm:inline">Active Quests:</span>
+        <span class="text-[11px] font-medium text-indigo-500 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded-full border border-indigo-200 dark:border-indigo-800">
+          CCNA • Cyber Recon • Data Analytics • DS & AI • Full-Stack
+        </span>
+      </div>
+    </header>
+
+    <!-- Chat Area -->
+    <div id="chat-container" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-6 max-w-3xl mx-auto w-full">
+      
+      <!-- Welcome Screen -->
+      <template x-if="messages.length === 0">
+        <div class="py-12 text-left space-y-6">
+          <div>
+            <h1 class="text-3xl font-medium bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 bg-clip-text text-transparent">
+              Welcome to Mimini Quests Assistant
+            </h1>
+            <p class="text-xl text-slate-400 dark:text-slate-500 mt-1">Ask any question or solution from our 5 website quest modules.</p>
+          </div>
+
+          <!-- Suggested Starter Prompts -->
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-4">
+            <template x-for="prompt in starterPrompts" :key="prompt.title">
+              <button @click="sendPrompt(prompt.query)" 
+                      class="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200/60 dark:border-slate-800 hover:border-indigo-300 dark:hover:border-indigo-800 hover:bg-slate-100 dark:hover:bg-slate-800 transition text-left space-y-2 group flex flex-col justify-between">
+                <div>
+                  <span class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider" x-text="prompt.quest"></span>
+                  <p class="text-xs font-semibold text-slate-800 dark:text-slate-200 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 mt-1" x-text="prompt.title"></p>
+                </div>
+                <p class="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-2" x-text="prompt.query"></p>
+              </button>
+            </template>
+          </div>
+        </div>
+      </template>
+
+      <!-- Message Thread -->
+      <template x-for="(msg, index) in messages" :key="index">
+        <div class="space-y-2">
+          <!-- User Message -->
+          <template x-if="msg.role === 'user'">
+            <div class="flex justify-end">
+              <div class="bg-indigo-600 text-white px-4 py-2.5 rounded-2xl rounded-tr-xs max-w-[85%] text-xs leading-relaxed">
+                <p x-text="msg.text"></p>
+              </div>
+            </div>
+          </template>
+
+          <!-- Assistant Response -->
+          <template x-if="msg.role === 'assistant'">
+            <div class="flex items-start gap-3">
+              <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 via-purple-500 to-pink-500 flex items-center justify-center shrink-0 mt-0.5">
+                <i data-lucide="sparkles" class="w-4 h-4 text-white"></i>
+              </div>
+              <div class="flex-1 space-y-3 text-xs leading-relaxed text-slate-700 dark:text-slate-200">
+                
+                <!-- Quest Badge & Level -->
+                <template x-if="msg.questName">
+                  <div class="flex items-center gap-2 mb-1">
+                    <span class="text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 px-2 py-0.5 rounded uppercase" x-text="msg.questName"></span>
+                    <span class="text-[10px] font-medium text-slate-400" x-text="'Level ' + msg.level"></span>
+                  </div>
+                </template>
+
+                <!-- Main Text -->
+                <div class="prose prose-sm dark:prose-invert max-w-none space-y-2" x-html="msg.text"></div>
+
+                <!-- Code / Script Snippet -->
+                <template x-if="msg.code">
+                  <div class="bg-slate-950 text-emerald-400 rounded-xl p-3 font-mono text-[11px] overflow-x-auto relative group border border-slate-800">
+                    <button @click="copyText(msg.code)" class="absolute top-2 right-2 bg-slate-800 hover:bg-slate-700 text-slate-300 p-1.5 rounded-md text-[10px] opacity-0 group-hover:opacity-100 transition">
+                      Copy Code
+                    </button>
+                    <pre x-text="msg.code"></pre>
+                  </div>
+                </template>
+
+                <!-- Action Bar -->
+                <div class="flex items-center gap-3 pt-1 text-slate-400">
+                  <button @click="copyText(msg.plainText)" title="Copy text" class="hover:text-slate-600 dark:hover:text-slate-200 transition">
+                    <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  </button>
+                  <button title="Helpful" class="hover:text-indigo-500 transition">
+                    <i data-lucide="thumbs-up" class="w-3.5 h-3.5"></i>
+                  </button>
+                  <button title="Not helpful" class="hover:text-red-500 transition">
+                    <i data-lucide="thumbs-down" class="w-3.5 h-3.5"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </template>
+
+      <!-- Loading State -->
+      <div x-show="isSearching" class="flex items-center gap-3 text-slate-400 text-xs">
+        <div class="w-7 h-7 rounded-full bg-gradient-to-tr from-indigo-500 to-purple-600 flex items-center justify-center animate-pulse">
+          <i data-lucide="sparkles" class="w-4 h-4 text-white"></i>
+        </div>
+        <span class="animate-pulse">Searching Quest Knowledge Base (150 Questions)...</span>
+      </div>
+
+    </div>
+
+    <!-- Input Footer -->
+    <div class="p-4 max-w-3xl mx-auto w-full">
+      <form @submit.prevent="handleSubmit()" 
+            class="relative bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60 rounded-2xl focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all p-2">
+        
+        <textarea x-model="userInput" 
+                  @keydown.enter.prevent="if(! $event.shiftKey) handleSubmit()"
+                  placeholder="Ask any question about Networking, Cyber Recon, Data Analytics, DS & AI, or Full-Stack..." 
+                  rows="2"
+                  class="w-full bg-transparent border-0 outline-none text-xs text-slate-800 dark:text-slate-100 placeholder-slate-400 resize-none px-3 pt-1"></textarea>
+
+        <div class="flex items-center justify-between px-2 pt-1 border-t border-slate-200/40 dark:border-slate-700/40">
+          <div class="flex items-center gap-2 text-slate-400">
+            <button type="button" @click="showDatasetModal = true; $nextTick(() => lucide.createIcons())" title="Inspect Dataset" class="p-1.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded-lg transition text-indigo-500">
+              <i data-lucide="database" class="w-4 h-4"></i>
+            </button>
+          </div>
+
+          <button type="submit" 
+                  :disabled="!userInput.trim() || isSearching"
+                  class="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 text-white p-2 rounded-xl transition shadow-sm">
+            <i data-lucide="send" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </form>
+      <p class="text-[10px] text-center text-slate-400 dark:text-slate-500 mt-2">
+        Mimini only responds to queries relevant to our 5 official Web Quests.
+      </p>
+    </div>
+  </main>
+
+  <!-- ================= DATASET INSPECTOR MODAL ================= -->
+  <div x-show="showDatasetModal" 
+       class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 flex items-center justify-center p-4"
+       x-transition.opacity>
+    <div @click.away="showDatasetModal = false" class="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-2xl w-full max-h-[80vh] flex flex-col shadow-2xl">
+      <div class="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800">
+        <div class="flex items-center gap-2">
+          <i data-lucide="database" class="w-5 h-5 text-indigo-500"></i>
+          <h2 class="font-bold text-sm text-slate-800 dark:text-slate-100">Web Quests Knowledge Dataset (150 Items)</h2>
+        </div>
+        <button @click="showDatasetModal = false" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-4 overflow-y-auto space-y-3 flex-1 text-xs">
+        <p class="text-slate-500">Complete database integrated from all 5 web quest applications:</p>
+        <template x-for="item in questDataset" :key="item.quest_id">
+          <div class="p-3 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200/60 dark:border-slate-800 space-y-1">
+            <div class="flex items-center justify-between">
+              <span class="inline-block px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 uppercase" x-text="item.quest"></span>
+              <span class="text-[10px] text-slate-400" x-text="'Lvl ' + item.level"></span>
+            </div>
+            <h4 class="font-bold text-slate-800 dark:text-slate-200" x-text="item.q"></h4>
+            <p class="text-slate-600 dark:text-slate-300"><strong>Answer:</strong> <span x-text="item.ans"></span></p>
+            <p class="text-slate-400 text-[11px]" x-show="item.hint"><strong>Hint:</strong> <span x-text="item.hint"></span></p>
+            <template x-if="item.fullSolution">
+              <pre class="bg-slate-950 text-sky-400 p-2 rounded text-[10px] font-mono mt-1 overflow-x-auto" x-text="item.fullSolution"></pre>
+            </template>
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+
+</body>
+</html>

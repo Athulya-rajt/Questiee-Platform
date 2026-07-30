@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Analytics Mobile Quest</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Pyodide Browser Python Interpreter -->
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen font-sans flex items-center justify-center p-3">
+
+  <div id="app" class="w-full max-w-md bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-200">
+    
+    <!-- Top Progress Bar -->
+    <div class="bg-indigo-600 p-4 text-white flex justify-between items-center">
+      <div>
+        <span id="level-badge" class="bg-indigo-800 text-xs font-bold uppercase px-2 py-1 rounded">Level 3</span>
+        <h1 class="text-sm font-semibold mt-1" id="q-progress">Question 21 / 30</h1>
+      </div>
+      <div class="text-right">
+        <div id="lives-display" class="text-red-300 font-bold text-sm">❤️ Lives: 3/3</div>
+        <div id="skips-display" class="text-xs text-indigo-200 mt-0.5">Skips: 3 left</div>
+      </div>
+    </div>
+
+    <!-- Question Container -->
+    <div class="p-5">
+      <h2 id="q-title" class="text-xs font-bold text-indigo-600 uppercase tracking-wide mb-1">Level 3: Live Code Compiler</h2>
+      <p id="q-text" class="text-gray-800 font-medium text-base mb-4">Loading question...</p>
+
+      <!-- Text Input Form (Levels 1 & 2) -->
+      <div id="input-container" class="mb-4 hidden">
+        <input type="text" id="user-answer" placeholder="Type your answer here..." 
+               class="w-full border-2 border-gray-300 p-3 rounded-xl focus:border-indigo-600 outline-none text-gray-800 text-base">
+      </div>
+
+      <!-- Live Mobile Code Compiler (Level 3) -->
+      <div id="compiler-container" class="mb-4">
+        <label class="block text-xs font-semibold text-gray-600 mb-1">🐍 Write & Test Python Code:</label>
+        <textarea id="python-code" rows="5" spellcheck="false"
+                  class="w-full bg-slate-900 text-green-400 font-mono text-xs p-3 rounded-xl focus:outline-none mb-2" 
+                  placeholder="import numpy as np&#10;import pandas as pd&#10;# Write your solution here..."></textarea>
+        
+        <button onclick="runPythonCode()" class="w-full bg-emerald-600 text-white font-bold py-2 rounded-lg text-xs hover:bg-emerald-700 transition mb-2">
+          ▶️ Run Code
+        </button>
+
+        <label class="block text-xs font-semibold text-gray-500 mb-1">Execution Output:</label>
+        <pre id="code-output" class="bg-gray-100 p-3 rounded-lg text-xs font-mono text-gray-800 min-h-[60px] max-h-[120px] overflow-y-auto border border-gray-200">Terminal output will appear here...</pre>
+      </div>
+
+      <!-- Submit Button -->
+      <button id="submit-btn" onclick="checkAnswer()" class="w-full bg-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-indigo-700 transition active:scale-95 mb-3">
+        Submit Answer
+      </button>
+
+      <!-- Control Buttons (Prev, Hint, Skip) -->
+      <div class="grid grid-cols-3 gap-2 mb-3">
+        <button id="prev-btn" onclick="prevQuestion()" class="bg-gray-200 text-gray-700 font-semibold py-2 rounded-lg text-xs hover:bg-gray-300 transition disabled:opacity-40 disabled:cursor-not-allowed">
+          ⬅️ Prev
+        </button>
+        <button onclick="toggleHint()" class="bg-amber-100 text-amber-800 font-semibold py-2 rounded-lg text-xs hover:bg-amber-200 transition">
+          💡 Hint
+        </button>
+        <button onclick="skipQuestion()" class="bg-indigo-50 text-indigo-700 font-semibold py-2 rounded-lg text-xs hover:bg-indigo-100 transition">
+          ⏭️ Skip
+        </button>
+      </div>
+
+      <!-- Reset Progress Option -->
+      <div class="text-center">
+        <button onclick="resetGameProgress()" class="text-gray-400 hover:text-red-500 text-[10px] underline">
+          Restart Game from Q1
+        </button>
+      </div>
+
+      <!-- Hint Box -->
+      <div id="hint-box" class="hidden mt-3 p-3 bg-amber-50 border border-amber-200 text-amber-900 text-xs rounded-lg">
+        <strong>Hint:</strong> <span id="hint-text"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Funny Monkey Error Modal -->
+  <div id="monkey-modal" class="fixed inset-0 bg-black/60 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white rounded-2xl p-5 text-center max-w-xs w-full shadow-2xl">
+      <img src="https://media.giphy.com/media/eH4O6fWvuKePi/giphy.gif" alt="Funny Monkey" class="w-36 h-36 object-cover mx-auto rounded-xl mb-3 shadow">
+      <h3 class="text-lg font-bold text-red-600">Oops! Wrong Answer!</h3>
+      <p id="modal-subtext" class="text-xs text-gray-600 my-2">You lost 1 life! Try again.</p>
+      
+      <!-- Show Solution Button (Appears after 5 failed attempts) -->
+      <button id="reveal-solution-btn" onclick="revealSolution()" class="w-full bg-amber-500 text-white font-bold py-2 rounded-xl text-xs shadow hover:bg-amber-600 mb-2 hidden">
+        🔓 Reveal Solution Code
+      </button>
+
+      <!-- Solution Display Box -->
+      <div id="solution-box" class="hidden my-2 p-2 bg-slate-900 text-green-400 font-mono text-[11px] rounded-lg text-left overflow-x-auto border border-gray-700 max-h-[100px]">
+        <pre id="solution-code-text"></pre>
+      </div>
+
+      <button onclick="closeModal()" class="w-full bg-red-500 text-white font-bold py-2 rounded-xl text-sm shadow hover:bg-red-600">
+        Try Again
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // INITIALIZE PYODIDE IN BACKGROUND
+    let pyodideInstance = null;
+    async function initPyodide() {
+      if (!pyodideInstance) {
+        pyodideInstance = await loadPyodide();
+        await pyodideInstance.loadPackage(["numpy", "pandas"]);
+      }
+    }
+    initPyodide(); // Pre-loads engine
+
+    // 30 QUESTIONS DATASET WITH FULL SOLUTION CODES FOR LEVEL 3
+    const QUESTIONS = [
+      // Level 1: One-Word Python/Libraries Basics (1-10)
+      { id: 1, level: 1, type: 'text', q: "1. What keyword is used to define a function in Python?", ans: "def", hint: "Starts with 'd'." },
+      { id: 2, level: 1, type: 'text', q: "2. Which Pandas object represents a 2D tabular data structure?", ans: "dataframe", hint: "DF for short." },
+      { id: 3, level: 1, type: 'text', q: "3. What NumPy attribute returns the dimensions of an array?", ans: "shape", hint: "e.g., arr._____." },
+      { id: 4, level: 1, type: 'text', q: "4. Which method removes leading/trailing spaces in string series?", ans: "strip", hint: "str._____()" },
+      { id: 5, level: 1, type: 'text', q: "5. What symbol is used for exponentiation (power) in Python?", ans: "**", hint: "Two asterisks." },
+      { id: 6, level: 1, type: 'text', q: "6. Which function is used to create a range of numbers array in NumPy?", ans: "arange", hint: "Similar to Python range." },
+      { id: 7, level: 1, type: 'text', q: "7. What Pandas function reads a CSV file?", ans: "read_csv", hint: "pd._____" },
+      { id: 8, level: 1, type: 'text', q: "8. What value represents missing data in Pandas?", ans: "nan", hint: "Not a Number." },
+      { id: 9, level: 1, type: 'text', q: "9. Which Pandas method is used to aggregate data by categories?", ans: "groupby", hint: "Group ____" },
+      { id: 10, level: 1, type: 'text', q: "10. What python data structure is ordered and immutable?", ans: "tuple", hint: "Uses parentheses ()." },
+
+      // Level 2: Output Prediction (11-20)
+      { id: 11, level: 2, type: 'text', q: "11. Output of: len(np.array([10, 20, 30]))?", ans: "3", hint: "Count the elements." },
+      { id: 12, level: 2, type: 'text', q: "12. Output of: np.array([1, 2]) + np.array([3, 4])?", ans: "[4 6]", hint: "Element-wise addition (or write 4, 6)." },
+      { id: 13, level: 2, type: 'text', q: "13. Output of: type([1, 2, 3])? (Write 'list' or 'array')", ans: "list", hint: "Standard Python sequence." },
+      { id: 14, level: 2, type: 'text', q: "14. If df has 5 rows and 3 cols, what is df.shape[0]?", ans: "5", hint: "0-index is row count." },
+      { id: 15, level: 2, type: 'text', q: "15. Output of: 7 // 2 in Python?", ans: "3", hint: "Integer floor division." },
+      { id: 16, level: 2, type: 'text', q: "16. Output of bool(0) in Python?", ans: "false", hint: "Zero represents false." },
+      { id: 17, level: 2, type: 'text', q: "17. Output of: 'py' + 'thon'?", ans: "python", hint: "String concatenation." },
+      { id: 18, level: 2, type: 'text', q: "18. Index of the first item in Python sequence?", ans: "0", hint: "Zero-based indexing." },
+      { id: 19, level: 2, type: 'text', q: "19. Output of: np.zeros(4).ndim?", ans: "1", hint: "1D array." },
+      { id: 20, level: 2, type: 'text', q: "20. Output of: 'HELLO'.lower()?", ans: "hello", hint: "Converts to lowercase." },
+
+      // Level 3: Online Compiler Scripting (21-30)
+      { id: 21, level: 3, type: 'code', q: "21. Write code to filter df where age > 20. (Use df = pd.DataFrame({'age': [18, 25, 30]}))", req: "df[df['age'] > 20]", fullSolution: "import pandas as pd\ndf = pd.DataFrame({'age': [18, 25, 30]})\nfiltered_df = df[df['age'] > 20]\nprint(filtered_df)", hint: "df[df['age'] > 20]" },
+      { id: 22, level: 3, type: 'code', q: "22. Write code to fill NaN values with 0 in df. (Use df = pd.DataFrame({'salary': [100, None]}))", req: "fillna(0)", fullSolution: "import pandas as pd\ndf = pd.DataFrame({'salary': [100, None]})\nclean_df = df.fillna(0)\nprint(clean_df)", hint: "df.fillna(0)" },
+      { id: 23, level: 3, type: 'code', q: "23. Write code to create a 3x3 NumPy array of ones.", req: "ones", fullSolution: "import numpy as np\narr = np.ones((3, 3))\nprint(arr)", hint: "np.ones((3,3))" },
+      { id: 24, level: 3, type: 'code', q: "24. Write code to calculate mean salary grouped by 'city'.", req: "groupby", fullSolution: "import pandas as pd\ndf = pd.DataFrame({'city': ['A', 'A', 'B'], 'salary': [100, 200, 300]})\nres = df.groupby('city')['salary'].mean()\nprint(res)", hint: "df.groupby('city')['salary'].mean()" },
+      { id: 25, level: 3, type: 'code', q: "25. Write code to drop duplicate rows from a DataFrame df.", req: "drop_duplicates", fullSolution: "import pandas as pd\ndf = pd.DataFrame({'a': [1, 1, 2]})\nclean_df = df.drop_duplicates()\nprint(clean_df)", hint: "df.drop_duplicates()" },
+      { id: 26, level: 3, type: 'code', q: "26. Import pandas as pd and numpy as np.", req: "import pandas as pd", fullSolution: "import pandas as pd\nimport numpy as np", hint: "import pandas as pd\nimport numpy as np" },
+      { id: 27, level: 3, type: 'code', q: "27. Sort DataFrame df by column 'age' in descending order.", req: "ascending=False", fullSolution: "import pandas as pd\ndf = pd.DataFrame({'age': [10, 30, 20]})\nsorted_df = df.sort_values('age', ascending=False)\nprint(sorted_df)", hint: "df.sort_values('age', ascending=False)" },
+      { id: 28, level: 3, type: 'code', q: "28. Create array A = np.array([[1,2],[3,4]]) and print its transpose.", req: ".T", fullSolution: "import numpy as np\nA = np.array([[1,2],[3,4]])\nprint(A.T)", hint: "print(A.T)" },
+      { id: 29, level: 3, type: 'code', q: "29. Rename column 'old_name' to 'new_name' in df.", req: "rename", fullSolution: "import pandas as pd\ndf = pd.DataFrame({'old_name': [1, 2]})\nnew_df = df.rename(columns={'old_name': 'new_name'})\nprint(new_df)", hint: "df.rename(columns={'old_name': 'new_name'})" },
+      { id: 30, level: 3, type: 'code', q: "30. Define a function calculate_avg(lst) that returns the mean of a list.", req: "def calculate_avg", fullSolution: "def calculate_avg(lst):\n    return sum(lst) / len(lst)\n\nprint(calculate_avg([10, 20, 30]))", hint: "def calculate_avg(lst):\n    return sum(lst)/len(lst)" }
+    ];
+
+    // STATE VARIABLES
+    let currentIdx = 20; 
+    let globalLives = 3;
+    let skipsLeft = { 1: 3, 2: 3, 3: 3 };
+    let userAnswers = {};
+    let failedAttempts = {}; // Tracks failed attempts per question ID
+
+    function saveStateToStorage() {
+      const state = { currentIdx, globalLives, skipsLeft, userAnswers, failedAttempts };
+      localStorage.setItem('quest_game_state', JSON.stringify(state));
+    }
+
+    function loadStateFromStorage() {
+      const saved = localStorage.getItem('quest_game_state');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          currentIdx = parsed.currentIdx !== undefined ? parsed.currentIdx : 20;
+          globalLives = parsed.globalLives !== undefined ? parsed.globalLives : 3;
+          skipsLeft = parsed.skipsLeft || { 1: 3, 2: 3, 3: 3 };
+          userAnswers = parsed.userAnswers || {};
+          failedAttempts = parsed.failedAttempts || {};
+        } catch (e) {
+          console.error("Error loading state", e);
+        }
+      }
+    }
+
+    function resetGameProgress() {
+      if (confirm("Are you sure you want to restart from Question 1?")) {
+        localStorage.removeItem('quest_game_state');
+        currentIdx = 0;
+        globalLives = 3;
+        skipsLeft = { 1: 3, 2: 3, 3: 3 };
+        userAnswers = {};
+        failedAttempts = {};
+        renderQuestion();
+      }
+    }
+
+    document.getElementById('user-answer').addEventListener('input', (e) => {
+      userAnswers[QUESTIONS[currentIdx].id] = e.target.value;
+      saveStateToStorage();
+    });
+
+    document.getElementById('python-code').addEventListener('input', (e) => {
+      userAnswers[QUESTIONS[currentIdx].id] = e.target.value;
+      saveStateToStorage();
+    });
+
+    function renderQuestion() {
+      const q = QUESTIONS[currentIdx];
+      const level = q.level;
+
+      document.getElementById('level-badge').innerText = `Level ${level}`;
+      document.getElementById('q-progress').innerText = `Question ${currentIdx + 1} / 30`;
+      document.getElementById('lives-display').innerText = `❤️ Lives: ${globalLives}/3`;
+      document.getElementById('skips-display').innerText = `Skips (Lvl ${level}): ${skipsLeft[level]} left`;
+
+      document.getElementById('prev-btn').disabled = (currentIdx === 0);
+
+      const levelTitles = {
+        1: "Level 1: One-Word Terminology",
+        2: "Level 2: Predict the Output",
+        3: "Level 3: Live Code Compiler"
+      };
+      document.getElementById('q-title').innerText = levelTitles[level];
+      document.getElementById('q-text').innerText = q.q;
+
+      const savedAnswer = userAnswers[q.id] || '';
+
+      if (q.type === 'text') {
+        document.getElementById('input-container').classList.remove('hidden');
+        document.getElementById('compiler-container').classList.add('hidden');
+        document.getElementById('user-answer').value = savedAnswer;
+      } else {
+        document.getElementById('input-container').classList.add('hidden');
+        document.getElementById('compiler-container').classList.remove('hidden');
+        document.getElementById('python-code').value = savedAnswer;
+        document.getElementById('code-output').innerText = "Terminal output will appear here...";
+      }
+
+      document.getElementById('hint-box').classList.add('hidden');
+      document.getElementById('hint-text').innerText = q.hint;
+
+      saveStateToStorage();
+    }
+
+    async function runPythonCode() {
+      const outputEl = document.getElementById('code-output');
+      const code = document.getElementById('python-code').value;
+      
+      outputEl.innerText = "⏳ Running code in browser...";
+
+      try {
+        if (!pyodideInstance) {
+          pyodideInstance = await loadPyodide();
+          await pyodideInstance.loadPackage(["numpy", "pandas"]);
+        }
+
+        pyodideInstance.runPython(`
+          import sys
+          import io
+          sys.stdout = io.StringIO()
+        `);
+
+        await pyodideInstance.runPythonAsync(code);
+
+        let stdout = pyodideInstance.runPython("sys.stdout.getvalue()");
+        outputEl.innerText = stdout || "Code executed successfully with no output (Use print() to display output).";
+      } catch (err) {
+        outputEl.innerText = "❌ Error:\n" + err.message;
+      }
+    }
+
+    function checkAnswer() {
+      const q = QUESTIONS[currentIdx];
+
+      if (q.type === 'text') {
+        const userAns = document.getElementById('user-answer').value.trim().toLowerCase();
+        userAnswers[q.id] = document.getElementById('user-answer').value;
+        saveStateToStorage();
+
+        if (userAns === q.ans.toLowerCase() || userAns.includes(q.ans.toLowerCase())) {
+          failedAttempts[q.id] = 0; // Reset on success
+          advance();
+        } else {
+          triggerError();
+        }
+      } else {
+        const code = document.getElementById('python-code').value;
+        userAnswers[q.id] = code;
+        saveStateToStorage();
+
+        if (code.includes(q.req)) {
+          failedAttempts[q.id] = 0; // Reset on success
+          alert("Great job! Solution verified!");
+          advance();
+        } else {
+          triggerError();
+        }
+      }
+    }
+
+    function triggerError() {
+      const q = QUESTIONS[currentIdx];
+      
+      if (globalLives > 0) {
+        globalLives--;
+      }
+
+      // Track failed attempts for current question
+      failedAttempts[q.id] = (failedAttempts[q.id] || 0) + 1;
+      saveStateToStorage();
+      
+      document.getElementById('lives-display').innerText = `❤️ Lives: ${globalLives}/3`;
+      
+      let subtext = globalLives > 0 
+        ? `You lost 1 life! ${globalLives} lives remaining. (${failedAttempts[q.id]}/5 attempts)` 
+        : `0 lives remaining! (${failedAttempts[q.id]}/5 attempts)`;
+      
+      document.getElementById('modal-subtext').innerText = subtext;
+
+      // Hide solution box by default when modal opens
+      document.getElementById('solution-box').classList.add('hidden');
+
+      // Show "Reveal Solution" button if failed 5 or more times
+      const revealBtn = document.getElementById('reveal-solution-btn');
+      if (failedAttempts[q.id] >= 5) {
+        revealBtn.classList.remove('hidden');
+      } else {
+        revealBtn.classList.add('hidden');
+      }
+
+      document.getElementById('monkey-modal').classList.remove('hidden');
+    }
+
+    function revealSolution() {
+      const q = QUESTIONS[currentIdx];
+      const solCodeText = document.getElementById('solution-code-text');
+      const solBox = document.getElementById('solution-box');
+
+      solCodeText.innerText = q.fullSolution || q.ans;
+      solBox.classList.remove('hidden');
+
+      // Also copy solution directly into the code compiler / input box for convenience
+      if (q.type === 'code') {
+        document.getElementById('python-code').value = q.fullSolution;
+      } else {
+        document.getElementById('user-answer').value = q.ans;
+      }
+      userAnswers[q.id] = q.fullSolution || q.ans;
+      saveStateToStorage();
+    }
+
+    function closeModal() {
+      document.getElementById('monkey-modal').classList.add('hidden');
+    }
+
+    function toggleHint() {
+      document.getElementById('hint-box').classList.toggle('hidden');
+    }
+
+    function skipQuestion() {
+      const level = QUESTIONS[currentIdx].level;
+      if (skipsLeft[level] > 0) {
+        skipsLeft[level]--;
+        saveStateToStorage();
+        advance();
+      } else {
+        alert(`No skips remaining for Level ${level}!`);
+      }
+    }
+
+    function prevQuestion() {
+      if (currentIdx > 0) {
+        currentIdx--;
+        renderQuestion();
+      }
+    }
+
+    function advance() {
+      if (currentIdx < QUESTIONS.length - 1) {
+        currentIdx++;
+        renderQuestion();
+      } else {
+        alert("🎉 CONGRATULATIONS! You completed all 30 questions and passed the live coding quest!");
+      }
+    }
+
+    // Load state or default to Q21
+    loadStateFromStorage();
+    renderQuestion();
+  </script>
+</body>
+</html>

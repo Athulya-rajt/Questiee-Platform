@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Data Science, ML & AI Quest</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Pyodide Browser Python Engine for ML/DS -->
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+</head>
+<body class="bg-slate-900 min-h-screen font-sans flex items-center justify-center p-3">
+
+  <div id="app" class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-700">
+    
+    <!-- Top Progress Bar -->
+    <div class="bg-slate-800 p-4 text-white flex justify-between items-center border-b border-slate-700">
+      <div>
+        <span id="level-badge" class="bg-emerald-600 text-xs font-bold uppercase px-2 py-1 rounded">Level 3</span>
+        <h1 class="text-sm font-semibold mt-1" id="q-progress">Question 21 / 30</h1>
+      </div>
+      <div class="text-right">
+        <div id="lives-display" class="text-red-400 font-bold text-sm">❤️ Lives: 3/3</div>
+        <div id="skips-display" class="text-xs text-slate-300 mt-0.5">Skips: 3 left</div>
+      </div>
+    </div>
+
+    <!-- Question Container -->
+    <div class="p-5">
+      <h2 id="q-title" class="text-xs font-bold text-emerald-600 uppercase tracking-wide mb-1">Level 3: ML & Data Python Scripting</h2>
+      <p id="q-text" class="text-gray-800 font-medium text-base mb-4">Loading question...</p>
+
+      <!-- Text Input Form (Levels 1 & 2) -->
+      <div id="input-container" class="mb-4 hidden">
+        <input type="text" id="user-answer" placeholder="Type answer, term, or keyword..." 
+               class="w-full border-2 border-slate-300 p-3 rounded-xl focus:border-emerald-600 outline-none text-gray-800 text-base font-mono">
+      </div>
+
+      <!-- Live Python Interpreter (Level 3 for ML/DS Code) -->
+      <div id="compiler-container" class="mb-4">
+        <label class="block text-xs font-semibold text-slate-700 mb-1">⚡ ML & DS Terminal (Python Engine):</label>
+        <textarea id="python-code" rows="5" spellcheck="false"
+                  class="w-full bg-slate-950 text-emerald-400 font-mono text-xs p-3 rounded-xl focus:outline-none mb-2 border border-slate-800" 
+                  placeholder="# Write your Python data processing or ML code here..."></textarea>
+        
+        <button onclick="runPythonCode()" class="w-full bg-emerald-600 text-white font-bold py-2 rounded-lg text-xs hover:bg-emerald-700 transition mb-2">
+          ▶️ Run Python Script
+        </button>
+
+        <label class="block text-xs font-semibold text-gray-500 mb-1">Terminal Output Log:</label>
+        <pre id="code-output" class="bg-slate-950 p-3 rounded-lg text-xs font-mono text-emerald-400 min-h-[60px] max-h-[120px] overflow-y-auto border border-slate-800">Terminal output will appear here...</pre>
+      </div>
+
+      <!-- Submit Button -->
+      <button id="submit-btn" onclick="checkAnswer()" class="w-full bg-emerald-600 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-emerald-700 transition active:scale-95 mb-3">
+        Submit Answer
+      </button>
+
+      <!-- Control Buttons (Prev, Hint, Skip) -->
+      <div class="grid grid-cols-3 gap-2 mb-3">
+        <button id="prev-btn" onclick="prevQuestion()" class="bg-slate-200 text-slate-700 font-semibold py-2 rounded-lg text-xs hover:bg-slate-300 transition disabled:opacity-40 disabled:cursor-not-allowed">
+          ⬅️ Prev
+        </button>
+        <button onclick="toggleHint()" class="bg-amber-100 text-amber-800 font-semibold py-2 rounded-lg text-xs hover:bg-amber-200 transition">
+          💡 Hint
+        </button>
+        <button onclick="skipQuestion()" class="bg-slate-100 text-slate-700 font-semibold py-2 rounded-lg text-xs hover:bg-slate-200 transition">
+          ⏭️ Skip
+        </button>
+      </div>
+
+      <!-- Reset Progress Option -->
+      <div class="text-center">
+        <button onclick="resetGameProgress()" class="text-slate-400 hover:text-emerald-500 text-[10px] underline">
+          Restart Game from Q1
+        </button>
+      </div>
+
+      <!-- Hint Box -->
+      <div id="hint-box" class="hidden mt-3 p-3 bg-amber-50 border border-amber-200 text-amber-900 text-xs rounded-lg">
+        <strong>Hint:</strong> <span id="hint-text"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Funny Error Modal -->
+  <div id="monkey-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white rounded-2xl p-5 text-center max-w-xs w-full shadow-2xl border border-slate-200">
+      <img src="https://media.giphy.com/media/eH4O6fWvuKePi/giphy.gif" alt="Funny Monkey" class="w-36 h-36 object-cover mx-auto rounded-xl mb-3 shadow">
+      <h3 class="text-lg font-bold text-emerald-600">Access Denied! Incorrect Answer</h3>
+      <p id="modal-subtext" class="text-xs text-gray-600 my-2">You lost 1 life! Try again.</p>
+      
+      <!-- Show Solution Button (Appears after 5 failed attempts) -->
+      <button id="reveal-solution-btn" onclick="revealSolution()" class="w-full bg-amber-500 text-white font-bold py-2 rounded-xl text-xs shadow hover:bg-amber-600 mb-2 hidden">
+        🔓 Reveal Solution Code
+      </button>
+
+      <!-- Solution Display Box -->
+      <div id="solution-box" class="hidden my-2 p-2 bg-slate-950 text-emerald-400 font-mono text-[11px] rounded-lg text-left overflow-x-auto border border-slate-800 max-h-[100px]">
+        <pre id="solution-code-text"></pre>
+      </div>
+
+      <button onclick="closeModal()" class="w-full bg-emerald-600 text-white font-bold py-2 rounded-xl text-sm shadow hover:bg-emerald-700">
+        Try Again
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // PRE-LOAD PYODIDE ENGINE
+    let pyodideInstance = null;
+    async function initPyodide() {
+      if (!pyodideInstance) {
+        pyodideInstance = await loadPyodide();
+      }
+    }
+    initPyodide();
+
+    // 30 DATA SCIENCE, ML & AI QUESTIONS DATASET
+    const QUESTIONS = [
+      // Level 1: Data Science & Statistics Fundamentals (1-10)
+      { id: 1, level: 1, type: 'text', q: "1. What statistical metric measures the central value of a dataset by averaging all numbers?", ans: "mean", hint: "Average value." },
+      { id: 2, level: 1, type: 'text', q: "2. Which core Python library provides multi-dimensional array objects and matrix math?", ans: "numpy", hint: "NumPy." },
+      { id: 3, level: 1, type: 'text', q: "3. What term describes data points that deviate significantly from other observations in a dataset?", ans: "outlier", hint: "Anomalous extreme value." },
+      { id: 4, level: 1, type: 'text', q: "4. Which Python library is most widely used for data manipulation, DataFrames, and CSV processing?", ans: "pandas", hint: "Pandas library." },
+      { id: 5, level: 1, type: 'text', q: "5. What supervised learning model predicts continuous target values along a straight line?", ans: "linear regression", hint: "Linear Regression." },
+      { id: 6, level: 1, type: 'text', q: "6. What type of Machine Learning learns without labeled target answers (e.g., K-Means)?", ans: "unsupervised", hint: "Unsupervised learning." },
+      { id: 7, level: 1, type: 'text', q: "7. Which standard metric evaluates classification model performance as Total Correct / Total Predictions?", ans: "accuracy", hint: "Accuracy." },
+      { id: 8, level: 1, type: 'text', q: "8. What algorithm uses a tree structure of conditional branches to classify or predict data?", ans: "decision tree", hint: "Decision Tree." },
+      { id: 9, level: 1, type: 'text', q: "9. In probability, what term defines the likelihood of event A given event B has occurred?", ans: "conditional probability", hint: "Conditional probability (Bayes' Theorem context)." },
+      { id: 10, level: 1, type: 'text', q: "10. What visualization chart displays data distributions across quartile intervals using a box and whiskers?", ans: "box plot", hint: "Box plot." },
+
+      // Level 2: Machine Learning & Deep Learning (11-20)
+      { id: 11, level: 2, type: 'text', q: "11. What condition occurs when an ML model fits training data too closely and performs poorly on new data?", ans: "overfitting", hint: "Overfitting." },
+      { id: 12, level: 2, type: 'text', q: "12. What iterative optimization algorithm minimizes a neural network's loss function by calculating steps down a slope?", ans: "gradient descent", hint: "Gradient Descent." },
+      { id: 13, level: 2, type: 'text', q: "13. Which activation function scales neural network node outputs to a range between 0 and 1?", ans: "sigmoid", hint: "Sigmoid function." },
+      { id: 14, level: 2, type: 'text', q: "14. What popular ML algorithm combines multiple decision trees to create an ensemble prediction model?", ans: "random forest", hint: "Random Forest." },
+      { id: 15, level: 2, type: 'text', q: "15. Which evaluation metric measures the ratio of True Positives out of all actual positive cases?", ans: "recall", hint: "Sensitivity / True Positive Rate." },
+      { id: 16, level: 2, type: 'text', q: "16. What neural network architecture uses convolutional layers primarily for image recognition tasks?", ans: "cnn", hint: "Convolutional Neural Network." },
+      { id: 17, level: 2, type: 'text', q: "17. What technique rescales numeric features so they have a mean of 0 and a standard deviation of 1?", ans: "standardization", hint: "Z-score normalization / Standardization." },
+      { id: 18, level: 2, type: 'text', q: "18. What activation function outputs 0 for negative inputs and the input value itself for positive inputs?", ans: "relu", hint: "ReLU (Rectified Linear Unit)." },
+      { id: 19, level: 2, type: 'text', q: "19. Which Deep Learning framework developed by Google uses computational graphs and tensors?", ans: "tensorflow", hint: "TensorFlow." },
+      { id: 20, level: 2, type: 'text', q: "20. What modern AI neural architecture uses self-attention mechanisms to power Large Language Models (LLMs)?", ans: "transformer", hint: "Transformer architecture (GPT, BERT)." },
+
+      // Level 3: Hands-on ML & AI Python Tasks (21-30)
+      { id: 21, level: 3, type: 'code', q: "21. Write Python code to create a 1D NumPy array containing numbers [1, 2, 3, 4, 5] and print its mean.", req: "mean", fullSolution: "import numpy as np\narr = np.array([1, 2, 3, 4, 5])\nprint(arr.mean())", hint: "import numpy as np; arr.mean()" },
+      { id: 22, level: 3, type: 'code', q: "22. Write Python code to create a 2x2 identity matrix using NumPy.", req: "eye", fullSolution: "import numpy as np\nmat = np.eye(2)\nprint(mat)", hint: "np.eye(2)" },
+      { id: 23, level: 3, type: 'code', q: "23. Write Python code to calculate the Euclidean distance between two 1D vectors [0, 0] and [3, 4].", req: "sqrt", fullSolution: "import math\nv1 = [0, 0]\nv2 = [3, 4]\ndist = math.sqrt((v2[0]-v1[0])**2 + (v2[1]-v1[1])**2)\nprint(dist)", hint: "math.sqrt((x2-x1)**2 + (y2-y1)**2)" },
+      { id: 24, level: 3, type: 'code', q: "24. Write Python code that computes the Sigmoid activation value for x = 0.", req: "exp", fullSolution: "import math\ndef sigmoid(x):\n    return 1 / (1 + math.exp(-x))\nprint(sigmoid(0))", hint: "1 / (1 + math.exp(-x))" },
+      { id: 25, level: 3, type: 'code', q: "25. Write Python code implementing a ReLU activation function that returns max(0, x) for x = -5.", req: "max(0", fullSolution: "def relu(x):\n    return max(0, x)\nprint(relu(-5))", hint: "max(0, x)" },
+      { id: 26, level: 3, type: 'code', q: "26. Write Python code to calculate Mean Squared Error (MSE) between actual [1, 2] and predicted [1.5, 2.5].", req: "2", fullSolution: "actual = [1, 2]\npred = [1.5, 2.5]\nmse = sum((a - p)**2 for a, p in zip(actual, pred)) / len(actual)\nprint(mse)", hint: "sum((a - p)**2 ...)" },
+      { id: 27, level: 3, type: 'code', q: "27. Write Python code using Min-Max scaling formula (x - min) / (max - min) to normalize x = 5 in dataset min=0, max=10.", req: "min", fullSolution: "x = 5\nx_min = 0\nx_max = 10\nnorm = (x - x_min) / (x_max - x_min)\nprint(norm)", hint: "(x - x_min) / (x_max - x_min)" },
+      { id: 28, level: 3, type: 'code', q: "28. Write Python code to compute Dot Product of two lists A=[1, 2] and B=[3, 4].", req: "zip", fullSolution: "A = [1, 2]\nB = [3, 4]\ndot_prod = sum(a * b for a, b in zip(A, B))\nprint(dot_prod)", hint: "sum(a * b for a, b in zip(A, B))" },
+      { id: 29, level: 3, type: 'code', q: "29. Write Python code to calculate classification Precision given True Positives=80 and False Positives=20.", req: "80", fullSolution: "tp = 80\nfp = 20\nprecision = tp / (tp + fp)\nprint(precision)", hint: "precision = tp / (tp + fp)" },
+      { id: 30, level: 3, type: 'code', q: "30. Write a Python function cosine_similarity(v1, v2) that computes dot product divided by vector norms.", req: "def cosine_similarity", fullSolution: "import math\ndef cosine_similarity(v1, v2):\n    dot = sum(a*b for a,b in zip(v1,v2))\n    norm1 = math.sqrt(sum(a*a for a in v1))\n    norm2 = math.sqrt(sum(b*b for b in v2))\n    return dot / (norm1 * norm2)\n\nprint(cosine_similarity([1, 0], [1, 0]))", hint: "dot / (norm1 * norm2)" }
+    ];
+
+    // STATE VARIABLES
+    let currentIdx = 20; // Default to Question 21 (Level 3)
+    let globalLives = 3;
+    let skipsLeft = { 1: 3, 2: 3, 3: 3 };
+    let userAnswers = {};
+    let failedAttempts = {};
+
+    function saveStateToStorage() {
+      const state = { currentIdx, globalLives, skipsLeft, userAnswers, failedAttempts };
+      localStorage.setItem('ds_ml_quest_game_state', JSON.stringify(state));
+    }
+
+    function loadStateFromStorage() {
+      const saved = localStorage.getItem('ds_ml_quest_game_state');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          currentIdx = parsed.currentIdx !== undefined ? parsed.currentIdx : 20;
+          globalLives = parsed.globalLives !== undefined ? parsed.globalLives : 3;
+          skipsLeft = parsed.skipsLeft || { 1: 3, 2: 3, 3: 3 };
+          userAnswers = parsed.userAnswers || {};
+          failedAttempts = parsed.failedAttempts || {};
+        } catch (e) {
+          console.error("Error loading state", e);
+        }
+      }
+    }
+
+    function resetGameProgress() {
+      if (confirm("Are you sure you want to restart from Question 1?")) {
+        localStorage.removeItem('ds_ml_quest_game_state');
+        currentIdx = 0;
+        globalLives = 3;
+        skipsLeft = { 1: 3, 2: 3, 3: 3 };
+        userAnswers = {};
+        failedAttempts = {};
+        renderQuestion();
+      }
+    }
+
+    document.getElementById('user-answer').addEventListener('input', (e) => {
+      userAnswers[QUESTIONS[currentIdx].id] = e.target.value;
+      saveStateToStorage();
+    });
+
+    document.getElementById('python-code').addEventListener('input', (e) => {
+      userAnswers[QUESTIONS[currentIdx].id] = e.target.value;
+      saveStateToStorage();
+    });
+
+    function renderQuestion() {
+      const q = QUESTIONS[currentIdx];
+      const level = q.level;
+
+      document.getElementById('level-badge').innerText = `Level ${level}`;
+      document.getElementById('q-progress').innerText = `Question ${currentIdx + 1} / 30`;
+      document.getElementById('lives-display').innerText = `❤️ Lives: ${globalLives}/3`;
+      document.getElementById('skips-display').innerText = `Skips (Lvl ${level}): ${skipsLeft[level]} left`;
+
+      document.getElementById('prev-btn').disabled = (currentIdx === 0);
+
+      const levelTitles = {
+        1: "Level 1: Data Science & Statistics",
+        2: "Level 2: Machine Learning & Deep Learning",
+        3: "Level 3: ML & Data Python Scripting"
+      };
+      document.getElementById('q-title').innerText = levelTitles[level];
+      document.getElementById('q-text').innerText = q.q;
+
+      const savedAnswer = userAnswers[q.id] || '';
+
+      if (q.type === 'text') {
+        document.getElementById('input-container').classList.remove('hidden');
+        document.getElementById('compiler-container').classList.add('hidden');
+        document.getElementById('user-answer').value = savedAnswer;
+      } else {
+        document.getElementById('input-container').classList.add('hidden');
+        document.getElementById('compiler-container').classList.remove('hidden');
+        document.getElementById('python-code').value = savedAnswer;
+        document.getElementById('code-output').innerText = "Terminal output will appear here...";
+      }
+
+      document.getElementById('hint-box').classList.add('hidden');
+      document.getElementById('hint-text').innerText = q.hint;
+
+      saveStateToStorage();
+    }
+
+    async function runPythonCode() {
+      const outputEl = document.getElementById('code-output');
+      const code = document.getElementById('python-code').value;
+      
+      outputEl.innerText = "⏳ Running script in Pyodide engine...";
+
+      try {
+        if (!pyodideInstance) {
+          pyodideInstance = await loadPyodide();
+        }
+
+        // Redirect stdout
+        pyodideInstance.runPython(`
+          import sys
+          import io
+          sys.stdout = io.StringIO()
+        `);
+
+        await pyodideInstance.runPythonAsync(code);
+
+        let stdout = pyodideInstance.runPython("sys.stdout.getvalue()");
+        outputEl.innerText = stdout || "Script executed successfully with no output (Use print() to display results).";
+      } catch (err) {
+        outputEl.innerText = "❌ Terminal Error:\n" + err.message;
+      }
+    }
+
+    function checkAnswer() {
+      const q = QUESTIONS[currentIdx];
+
+      if (q.type === 'text') {
+        const userAns = document.getElementById('user-answer').value.trim().toLowerCase();
+        userAnswers[q.id] = document.getElementById('user-answer').value;
+        saveStateToStorage();
+
+        if (userAns === q.ans.toLowerCase() || userAns.includes(q.ans.toLowerCase())) {
+          failedAttempts[q.id] = 0;
+          advance();
+        } else {
+          triggerError();
+        }
+      } else {
+        const code = document.getElementById('python-code').value;
+        userAnswers[q.id] = code;
+        saveStateToStorage();
+
+        if (code.includes(q.req)) {
+          failedAttempts[q.id] = 0;
+          alert("Great job! Data Science code verified!");
+          advance();
+        } else {
+          triggerError();
+        }
+      }
+    }
+
+    function triggerError() {
+      const q = QUESTIONS[currentIdx];
+      
+      if (globalLives > 0) {
+        globalLives--;
+      }
+
+      failedAttempts[q.id] = (failedAttempts[q.id] || 0) + 1;
+      saveStateToStorage();
+      
+      document.getElementById('lives-display').innerText = `❤️ Lives: ${globalLives}/3`;
+      
+      let subtext = globalLives > 0 
+        ? `You lost 1 life! ${globalLives} lives remaining. (${failedAttempts[q.id]}/5 attempts)` 
+        : `0 lives remaining! (${failedAttempts[q.id]}/5 attempts)`;
+      
+      document.getElementById('modal-subtext').innerText = subtext;
+      document.getElementById('solution-box').classList.add('hidden');
+
+      const revealBtn = document.getElementById('reveal-solution-btn');
+      if (failedAttempts[q.id] >= 5) {
+        revealBtn.classList.remove('hidden');
+      } else {
+        revealBtn.classList.add('hidden');
+      }
+
+      document.getElementById('monkey-modal').classList.remove('hidden');
+    }
+
+    function revealSolution() {
+      const q = QUESTIONS[currentIdx];
+      const solCodeText = document.getElementById('solution-code-text');
+      const solBox = document.getElementById('solution-box');
+
+      solCodeText.innerText = q.fullSolution || q.ans;
+      solBox.classList.remove('hidden');
+
+      if (q.type === 'code') {
+        document.getElementById('python-code').value = q.fullSolution;
+      } else {
+        document.getElementById('user-answer').value = q.ans;
+      }
+      userAnswers[q.id] = q.fullSolution || q.ans;
+      saveStateToStorage();
+    }
+
+    function closeModal() {
+      document.getElementById('monkey-modal').classList.add('hidden');
+    }
+
+    function toggleHint() {
+      document.getElementById('hint-box').classList.toggle('hidden');
+    }
+
+    function skipQuestion() {
+      const level = QUESTIONS[currentIdx].level;
+      if (skipsLeft[level] > 0) {
+        skipsLeft[level]--;
+        saveStateToStorage();
+        advance();
+      } else {
+        alert(`No skips remaining for Level ${level}!`);
+      }
+    }
+
+    function prevQuestion() {
+      if (currentIdx > 0) {
+        currentIdx--;
+        renderQuestion();
+      }
+    }
+
+    function advance() {
+      if (currentIdx < QUESTIONS.length - 1) {
+        currentIdx++;
+        renderQuestion();
+      } else {
+        alert("🎉 CONGRATULATIONS! You completed all 30 Data Science, ML & AI questions!");
+      }
+    }
+
+    // Load saved progress or default to Q21
+    loadStateFromStorage();
+    renderQuestion();
+  </script>
+</body>
+</html>

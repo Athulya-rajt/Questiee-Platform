@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Full Stack Development Quest</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Pyodide Browser Python Interpreter -->
+  <script src="https://cdn.jsdelivr.net/pyodide/v0.25.0/full/pyodide.js"></script>
+</head>
+<body class="bg-slate-900 min-h-screen font-sans flex items-center justify-center p-3">
+
+  <div id="app" class="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-slate-700">
+    
+    <!-- Top Progress Bar -->
+    <div class="bg-slate-800 p-4 text-white flex justify-between items-center border-b border-slate-700">
+      <div>
+        <span id="level-badge" class="bg-amber-600 text-xs font-bold uppercase px-2 py-1 rounded">Level 3</span>
+        <h1 class="text-sm font-semibold mt-1" id="q-progress">Question 21 / 30</h1>
+      </div>
+      <div class="text-right">
+        <div id="lives-display" class="text-red-400 font-bold text-sm">❤️ Lives: 3/3</div>
+        <div id="skips-display" class="text-xs text-slate-300 mt-0.5">Skips: 3 left</div>
+      </div>
+    </div>
+
+    <!-- Question Container -->
+    <div class="p-5">
+      <h2 id="q-title" class="text-xs font-bold text-amber-600 uppercase tracking-wide mb-1">Level 3: Full Stack Automation & Scripting</h2>
+      <p id="q-text" class="text-gray-800 font-medium text-base mb-4">Loading question...</p>
+
+      <!-- Text Input Form (Levels 1 & 2) -->
+      <div id="input-container" class="mb-4 hidden">
+        <input type="text" id="user-answer" placeholder="Type answer, command, or keyword..." 
+               class="w-full border-2 border-slate-300 p-3 rounded-xl focus:border-amber-600 outline-none text-gray-800 text-base font-mono">
+      </div>
+
+      <!-- Live Mobile Code Compiler (Level 3) -->
+      <div id="compiler-container" class="mb-4">
+        <label class="block text-xs font-semibold text-slate-700 mb-1">⚡ Full Stack Scripting Terminal (Python):</label>
+        <textarea id="python-code" rows="5" spellcheck="false"
+                  class="w-full bg-slate-950 text-amber-400 font-mono text-xs p-3 rounded-xl focus:outline-none mb-2 border border-slate-800" 
+                  placeholder="# Write your Python automation or parsing code here..."></textarea>
+        
+        <button onclick="runPythonCode()" class="w-full bg-amber-600 text-white font-bold py-2 rounded-lg text-xs hover:bg-amber-700 transition mb-2">
+          ▶️ Run Script
+        </button>
+
+        <label class="block text-xs font-semibold text-gray-500 mb-1">Terminal Output:</label>
+        <pre id="code-output" class="bg-slate-950 p-3 rounded-lg text-xs font-mono text-amber-400 min-h-[60px] max-h-[120px] overflow-y-auto border border-slate-800">Terminal output will appear here...</pre>
+      </div>
+
+      <!-- Submit Button -->
+      <button id="submit-btn" onclick="checkAnswer()" class="w-full bg-amber-600 text-white font-bold py-3 rounded-xl shadow-lg hover:bg-amber-700 transition active:scale-95 mb-3">
+        Submit Answer
+      </button>
+
+      <!-- Control Buttons (Prev, Hint, Skip) -->
+      <div class="grid grid-cols-3 gap-2 mb-3">
+        <button id="prev-btn" onclick="prevQuestion()" class="bg-slate-200 text-slate-700 font-semibold py-2 rounded-lg text-xs hover:bg-slate-300 transition disabled:opacity-40 disabled:cursor-not-allowed">
+          ⬅️ Prev
+        </button>
+        <button onclick="toggleHint()" class="bg-amber-100 text-amber-800 font-semibold py-2 rounded-lg text-xs hover:bg-amber-200 transition">
+          💡 Hint
+        </button>
+        <button onclick="skipQuestion()" class="bg-slate-100 text-slate-700 font-semibold py-2 rounded-lg text-xs hover:bg-slate-200 transition">
+          ⏭️ Skip
+        </button>
+      </div>
+
+      <!-- Reset Progress Option -->
+      <div class="text-center">
+        <button onclick="resetGameProgress()" class="text-slate-400 hover:text-amber-500 text-[10px] underline">
+          Restart Game from Q1
+        </button>
+      </div>
+
+      <!-- Hint Box -->
+      <div id="hint-box" class="hidden mt-3 p-3 bg-amber-50 border border-amber-200 text-amber-900 text-xs rounded-lg">
+        <strong>Hint:</strong> <span id="hint-text"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Funny Monkey Error Modal -->
+  <div id="monkey-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center p-4 hidden z-50">
+    <div class="bg-white rounded-2xl p-5 text-center max-w-xs w-full shadow-2xl border border-slate-200">
+      <img src="https://media.giphy.com/media/eH4O6fWvuKePi/giphy.gif" alt="Funny Monkey" class="w-36 h-36 object-cover mx-auto rounded-xl mb-3 shadow">
+      <h3 class="text-lg font-bold text-amber-600">Access Denied! Incorrect Answer</h3>
+      <p id="modal-subtext" class="text-xs text-gray-600 my-2">You lost 1 life! Try again.</p>
+      
+      <!-- Show Solution Button (Appears after 5 failed attempts) -->
+      <button id="reveal-solution-btn" onclick="revealSolution()" class="w-full bg-amber-500 text-white font-bold py-2 rounded-xl text-xs shadow hover:bg-amber-600 mb-2 hidden">
+        🔓 Reveal Solution Code
+      </button>
+
+      <!-- Solution Display Box -->
+      <div id="solution-box" class="hidden my-2 p-2 bg-slate-950 text-amber-400 font-mono text-[11px] rounded-lg text-left overflow-x-auto border border-slate-800 max-h-[100px]">
+        <pre id="solution-code-text"></pre>
+      </div>
+
+      <button onclick="closeModal()" class="w-full bg-amber-600 text-white font-bold py-2 rounded-xl text-sm shadow hover:bg-amber-700">
+        Try Again
+      </button>
+    </div>
+  </div>
+
+  <script>
+    // INITIALIZE PYODIDE IN BACKGROUND
+    let pyodideInstance = null;
+    async function initPyodide() {
+      if (!pyodideInstance) {
+        pyodideInstance = await loadPyodide();
+      }
+    }
+    initPyodide(); // Pre-loads engine
+
+    // 30 FULL STACK DEVELOPMENT QUESTIONS DATASET
+    const QUESTIONS = [
+      // Level 1: HTML, CSS, JS Fundamentals (1-10)
+      { id: 1, level: 1, type: 'text', q: "1. Which HTML5 element specifies a navigational section of links?", ans: "nav", hint: "<nav> tag." },
+      { id: 2, level: 1, type: 'text', q: "2. Which CSS property changes the background color of an element?", ans: "background-color", hint: "background-color property." },
+      { id: 3, level: 1, type: 'text', q: "3. Which JS keyword declares a block-scoped constant that cannot be reassigned?", ans: "const", hint: "Cannot be reassigned." },
+      { id: 4, level: 1, type: 'text', q: "4. What HTML attribute uniquely identifies a single element in a document?", ans: "id", hint: "id attribute." },
+      { id: 5, level: 1, type: 'text', q: "5. Which CSS Flexbox property aligns items along the main axis?", ans: "justify-content", hint: "justify-content (flex-start, center, space-between)." },
+      { id: 6, level: 1, type: 'text', q: "6. What standard HTTP response status code represents successful request execution?", ans: "200", hint: "200 OK." },
+      { id: 7, level: 1, type: 'text', q: "7. Which JS array method appends elements to the end of an array?", ans: "push", hint: "array.push(item)" },
+      { id: 8, level: 1, type: 'text', q: "8. Which basic SQL clause is used to retrieve data from a relational table?", ans: "select", hint: "SELECT * FROM table" },
+      { id: 9, level: 1, type: 'text', q: "9. Which HTML tag connects an external CSS stylesheet to a web page?", ans: "link", hint: "<link rel='stylesheet' href='...'>" },
+      { id: 10, level: 1, type: 'text', q: "10. In CSS Box Model, what space surrounds the content inside the border?", ans: "padding", hint: "Padding is internal spacing." },
+
+      // Level 2: Modern Web Architecture & APIs (11-20)
+      { id: 11, level: 2, type: 'text', q: "11. Which HTTP request method replaces an existing resource completely?", ans: "put", hint: "PUT method." },
+      { id: 12, level: 2, type: 'text', q: "12. What Node.js core module handles cross-platform file and directory paths?", ans: "path", hint: "require('path')" },
+      { id: 13, level: 2, type: 'text', q: "13. Which JS DOM event fires when an HTML form is submitted?", ans: "submit", hint: "addEventListener('submit')" },
+      { id: 14, level: 2, type: 'text', q: "14. In REST API design, which HTTP verb removes a specified resource?", ans: "delete", hint: "DELETE method." },
+      { id: 15, level: 2, type: 'text', q: "15. Which CSS layout system handles 2D structures with rows and columns?", ans: "grid", hint: "display: grid" },
+      { id: 16, level: 2, type: 'text', q: "16. Which standard JS method converts a JSON string into a JS object?", ans: "json.parse", hint: "JSON.parse()" },
+      { id: 17, level: 2, type: 'text', q: "17. In Node.js CommonJS modules, what variable holds the directory path of the current module?", ans: "__dirname", hint: "Double underscore __dirname" },
+      { id: 18, level: 1, type: 'text', q: "18. What popular NoSQL database uses BSON formatted documents?", ans: "mongodb", hint: "MongoDB." },
+      { id: 19, level: 2, type: 'text', q: "19. Which Git command creates and switches to a new branch simultaneously?", ans: "git checkout -b", hint: "git checkout -b <branch-name>" },
+      { id: 20, level: 2, type: 'text', q: "20. Which HTTP header field carries Bearer JWT tokens for client authorization?", ans: "authorization", hint: "Authorization header." },
+
+      // Level 3: Full Stack Automation & Scripting (21-30)
+      { id: 21, level: 3, type: 'code', q: "21. Write Python code to format a JSON API endpoint URL string with query parameter 'user_id=42'.", req: "user_id=42", fullSolution: "base = 'https://api.example.com/data'\nurl = f'{base}?user_id=42'\nprint(url)", hint: "f'{base}?user_id=42'" },
+      { id: 22, level: 3, type: 'code', q: "22. Write Python code using json.dumps to format a dictionary into a JSON string.", req: "json.dumps", fullSolution: "import json\ndata = {'status': 'success', 'code': 200}\njson_str = json.dumps(data)\nprint(json_str)", hint: "import json; json.dumps(data)" },
+      { id: 23, level: 3, type: 'code', q: "23. Write Python code to build an Express-like route mapping string for GET '/api/users'.", req: "GET", fullSolution: "method = 'GET'\npath = '/api/users'\nprint(f'{method} {path}')", hint: "print(f'{method} {path}')" },
+      { id: 24, level: 3, type: 'code', q: "24. Write Python code to filter a list of API status codes for only 2xx successful responses.", req: "200", fullSolution: "codes = [200, 404, 500, 201, 403]\nsuccess = [c for c in codes if 200 <= c < 300]\nprint(success)", hint: "[c for c in codes if 200 <= c < 300]" },
+      { id: 25, level: 3, type: 'code', q: "25. Write Python code that formats a CORS header authorization dictionary.", req: "Authorization", fullSolution: "headers = {'Content-Type': 'application/json', 'Authorization': 'Bearer token123'}\nprint(headers)", hint: "{'Authorization': 'Bearer token123'}" },
+      { id: 26, level: 3, type: 'code', q: "26. Write Python code to convert a list of HTML tag strings into uppercase format.", req: "upper", fullSolution: "tags = ['div', 'span', 'header']\nupper_tags = [t.upper() for t in tags]\nprint(upper_tags)", hint: "[t.upper() for t in tags]" },
+      { id: 27, level: 3, type: 'code', q: "27. Write Python code to extract database host and port from a connection string 'mongodb://localhost:27017'.", req: "27017", fullSolution: "conn = 'mongodb://localhost:27017'\nhost_port = conn.split('://')[1]\nprint(host_port)", hint: "conn.split('://')[1]" },
+      { id: 28, level: 3, type: 'code', q: "28. Write Python code to check if an API token string starts with 'Bearer '.", req: "startswith", fullSolution: "token = 'Bearer xyz123'\nif token.startswith('Bearer '):\n    print('Valid Format')", hint: "token.startswith('Bearer ')" },
+      { id: 29, level: 3, type: 'code', q: "29. Write Python code to construct an SQL query string inserting username and email values.", req: "INSERT INTO", fullSolution: "user = 'john'\nemail = 'john@test.com'\nsql = f\"INSERT INTO users (name, email) VALUES ('{user}', '{email}')\"\nprint(sql)", hint: "f\"INSERT INTO users ... VALUES ('{user}', '{email}')\"" },
+      { id: 30, level: 3, type: 'code', q: "30. Write a Python function create_api_response(status, payload) returning a response dictionary.", req: "def create_api_response", fullSolution: "def create_api_response(status, payload):\n    return {'status': status, 'data': payload}\n\nprint(create_api_response(200, {'id': 1}))", hint: "def create_api_response(status, payload): return {'status': status, 'data': payload}" }
+    ];
+
+    // STATE VARIABLES
+    let currentIdx = 20; // Defaults to Question 21 (Level 3)
+    let globalLives = 3;
+    let skipsLeft = { 1: 3, 2: 3, 3: 3 };
+    let userAnswers = {};
+    let failedAttempts = {}; // Tracks failed attempts per question ID
+
+    function saveStateToStorage() {
+      const state = { currentIdx, globalLives, skipsLeft, userAnswers, failedAttempts };
+      localStorage.setItem('fs_quest_game_state', JSON.stringify(state));
+    }
+
+    function loadStateFromStorage() {
+      const saved = localStorage.getItem('fs_quest_game_state');
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          currentIdx = parsed.currentIdx !== undefined ? parsed.currentIdx : 20;
+          globalLives = parsed.globalLives !== undefined ? parsed.globalLives : 3;
+          skipsLeft = parsed.skipsLeft || { 1: 3, 2: 3, 3: 3 };
+          userAnswers = parsed.userAnswers || {};
+          failedAttempts = parsed.failedAttempts || {};
+        } catch (e) {
+          console.error("Error loading state", e);
+        }
+      }
+    }
+
+    function resetGameProgress() {
+      if (confirm("Are you sure you want to restart from Question 1?")) {
+        localStorage.removeItem('fs_quest_game_state');
+        currentIdx = 0;
+        globalLives = 3;
+        skipsLeft = { 1: 3, 2: 3, 3: 3 };
+        userAnswers = {};
+        failedAttempts = {};
+        renderQuestion();
+      }
+    }
+
+    document.getElementById('user-answer').addEventListener('input', (e) => {
+      userAnswers[QUESTIONS[currentIdx].id] = e.target.value;
+      saveStateToStorage();
+    });
+
+    document.getElementById('python-code').addEventListener('input', (e) => {
+      userAnswers[QUESTIONS[currentIdx].id] = e.target.value;
+      saveStateToStorage();
+    });
+
+    function renderQuestion() {
+      const q = QUESTIONS[currentIdx];
+      const level = q.level;
+
+      document.getElementById('level-badge').innerText = `Level ${level}`;
+      document.getElementById('q-progress').innerText = `Question ${currentIdx + 1} / 30`;
+      document.getElementById('lives-display').innerText = `❤️ Lives: ${globalLives}/3`;
+      document.getElementById('skips-display').innerText = `Skips (Lvl ${level}): ${skipsLeft[level]} left`;
+
+      document.getElementById('prev-btn').disabled = (currentIdx === 0);
+
+      const levelTitles = {
+        1: "Level 1: HTML, CSS & JS Fundamentals",
+        2: "Level 2: Web Architecture & APIs",
+        3: "Level 3: Full Stack Automation & Scripting"
+      };
+      document.getElementById('q-title').innerText = levelTitles[level];
+      document.getElementById('q-text').innerText = q.q;
+
+      const savedAnswer = userAnswers[q.id] || '';
+
+      if (q.type === 'text') {
+        document.getElementById('input-container').classList.remove('hidden');
+        document.getElementById('compiler-container').classList.add('hidden');
+        document.getElementById('user-answer').value = savedAnswer;
+      } else {
+        document.getElementById('input-container').classList.add('hidden');
+        document.getElementById('compiler-container').classList.remove('hidden');
+        document.getElementById('python-code').value = savedAnswer;
+        document.getElementById('code-output').innerText = "Terminal output will appear here...";
+      }
+
+      document.getElementById('hint-box').classList.add('hidden');
+      document.getElementById('hint-text').innerText = q.hint;
+
+      saveStateToStorage();
+    }
+
+    async function runPythonCode() {
+      const outputEl = document.getElementById('code-output');
+      const code = document.getElementById('python-code').value;
+      
+      outputEl.innerText = "⏳ Running script in terminal...";
+
+      try {
+        if (!pyodideInstance) {
+          pyodideInstance = await loadPyodide();
+        }
+
+        pyodideInstance.runPython(`
+          import sys
+          import io
+          sys.stdout = io.StringIO()
+        `);
+
+        await pyodideInstance.runPythonAsync(code);
+
+        let stdout = pyodideInstance.runPython("sys.stdout.getvalue()");
+        outputEl.innerText = stdout || "Script executed successfully with no output (Use print() to display results).";
+      } catch (err) {
+        outputEl.innerText = "❌ Terminal Error:\n" + err.message;
+      }
+    }
+
+    function checkAnswer() {
+      const q = QUESTIONS[currentIdx];
+
+      if (q.type === 'text') {
+        const userAns = document.getElementById('user-answer').value.trim().toLowerCase();
+        userAnswers[q.id] = document.getElementById('user-answer').value;
+        saveStateToStorage();
+
+        if (userAns === q.ans.toLowerCase() || userAns.includes(q.ans.toLowerCase())) {
+          failedAttempts[q.id] = 0; // Reset on success
+          advance();
+        } else {
+          triggerError();
+        }
+      } else {
+        const code = document.getElementById('python-code').value;
+        userAnswers[q.id] = code;
+        saveStateToStorage();
+
+        if (code.includes(q.req)) {
+          failedAttempts[q.id] = 0; // Reset on success
+          alert("Great job! Full Stack script verified!");
+          advance();
+        } else {
+          triggerError();
+        }
+      }
+    }
+
+    function triggerError() {
+      const q = QUESTIONS[currentIdx];
+      
+      if (globalLives > 0) {
+        globalLives--;
+      }
+
+      // Track failed attempts for current question
+      failedAttempts[q.id] = (failedAttempts[q.id] || 0) + 1;
+      saveStateToStorage();
+      
+      document.getElementById('lives-display').innerText = `❤️ Lives: ${globalLives}/3`;
+      
+      let subtext = globalLives > 0 
+        ? `You lost 1 life! ${globalLives} lives remaining. (${failedAttempts[q.id]}/5 attempts)` 
+        : `0 lives remaining! (${failedAttempts[q.id]}/5 attempts)`;
+      
+      document.getElementById('modal-subtext').innerText = subtext;
+
+      // Hide solution box by default when modal opens
+      document.getElementById('solution-box').classList.add('hidden');
+
+      // Show "Reveal Solution" button if failed 5 or more times
+      const revealBtn = document.getElementById('reveal-solution-btn');
+      if (failedAttempts[q.id] >= 5) {
+        revealBtn.classList.remove('hidden');
+      } else {
+        revealBtn.classList.add('hidden');
+      }
+
+      document.getElementById('monkey-modal').classList.remove('hidden');
+    }
+
+    function revealSolution() {
+      const q = QUESTIONS[currentIdx];
+      const solCodeText = document.getElementById('solution-code-text');
+      const solBox = document.getElementById('solution-box');
+
+      solCodeText.innerText = q.fullSolution || q.ans;
+      solBox.classList.remove('hidden');
+
+      // Also copy solution directly into the code compiler / input box for convenience
+      if (q.type === 'code') {
+        document.getElementById('python-code').value = q.fullSolution;
+      } else {
+        document.getElementById('user-answer').value = q.ans;
+      }
+      userAnswers[q.id] = q.fullSolution || q.ans;
+      saveStateToStorage();
+    }
+
+    function closeModal() {
+      document.getElementById('monkey-modal').classList.add('hidden');
+    }
+
+    function toggleHint() {
+      document.getElementById('hint-box').classList.toggle('hidden');
+    }
+
+    function skipQuestion() {
+      const level = QUESTIONS[currentIdx].level;
+      if (skipsLeft[level] > 0) {
+        skipsLeft[level]--;
+        saveStateToStorage();
+        advance();
+      } else {
+        alert(`No skips remaining for Level ${level}!`);
+      }
+    }
+
+    function prevQuestion() {
+      if (currentIdx > 0) {
+        currentIdx--;
+        renderQuestion();
+      }
+    }
+
+    function advance() {
+      if (currentIdx < QUESTIONS.length - 1) {
+        currentIdx++;
+        renderQuestion();
+      } else {
+        alert("🎉 CONGRATULATIONS! You completed all 30 Full Stack Development questions!");
+      }
+    }
+
+    // Load state or default to Q21
+    loadStateFromStorage();
+    renderQuestion();
+  </script>
+</body>
+</html>
